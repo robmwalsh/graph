@@ -1,39 +1,75 @@
 package com.github.unclebob418.graph
 
 import java.util.UUID
-import zio._
 
-//todo implement schema, limiting the types of objects that can be added and the types that can be joined
-//todo make covariant? might need to track node/edge types with type tags
-final case class Graph[V, E] private(vs: Map[UUID, Vertex[V]], inEs: Map[UUID, Edge[E]], outEs: Map[UUID, Edge[E]]) {
+import com.github.unclebob418.graph.TestVertexSchema.{ SInt, SString }
 
-  def addV(v: Vertex[V]): Option[Graph[V, E]] =
-    if (containsV(v)) None else Some(copy(vs = vs.updated(v.id, v)))
+abstract class Graph {
+  type VertexSchema[_]
+  type EdgeSchema[_, _, _]
+  val vs: Map[Id.VertexId[_], Vertex[_]]
+  val inEs: Map[UUID, Set[Edge[_, _]]]
+  val outEs: Map[UUID, Set[Edge[_, _]]]
 
-  def connect(from: UUID, to: UUID, e: E): Graph[V, E] = { //todo check for cycles
-    val edge = Edge(from, to, e)
-    copy(inEs = inEs.updated(to, edge), outEs = outEs.updated(from, edge))
+  def addV[V](v: V)(implicit ev: VertexSchema[V]): Option[Graph] = ???
+  //[F]rom -> [E]dge -> [T]o
+  def addE[F, E, T](e: E)(implicit ev: EdgeSchema[F, E, T]): Option[Graph] = ???
+
+}
+sealed trait VSchema[A] {
+  type Id
+  //def id[A](a: A => Id): Id
+}
+sealed trait TestVertexSchema[A] extends VSchema[A]
+object TestVertexSchema {
+  implicit case object SInt extends TestVertexSchema[Int] {
+    override type Id = String
+    //override def id[A, B <: String](a: Int): String = a.toString
   }
-
-  def containsV(v: Vertex[V]): Boolean =
-    vs.contains(v.id)
-
-  def updateV(v: Vertex[V]): Option[Graph[V, E]] =
-    if (containsV(v)) Some(copy(vs = vs.updated(v.id, v))) else None
-
-  def upsertV(v: Vertex[V]): Graph[V, E] =
-    copy(vs = vs.updated(v.id, v))
-
-  def removeVbyId(id: UUID): Graph[V, E] = Graph(vs - id,
-    inEs.filterNot(_._2.to == id),
-    outEs.filterNot(_._2.from == id))
+  implicit case object SString extends TestVertexSchema[String] {
+    override type Id = String
+    //override def id[String](a: String => String): String
+  }
+}
+sealed trait TestEdgeSchema[F, E, T]
+object TestEdgeSchema {
+  implicit case object IntStringString extends TestEdgeSchema[Int, String, String]
+  implicit case object IntStringInt    extends TestEdgeSchema[Int, String, Int]
 }
 
-//todo protect constructors - Nodes & Verticies should only ever be constructed as they enter a graph -
-// if it's not in there, it's not a node/edge
-final case class Vertex[V](id: UUID, vertex: V)
-final case class Edge[E](from: UUID, to: UUID, edge: E) //arc
-// todo add line (undirected), hyperarc (directed one:many), hyperline(undirected set)
-//node --| edge |-> node
-//              |-> node
-//node --| edge |-- node
+case class TestGraph(
+  vs: Map[Id.VertexId[_], Vertex[_]],
+  inEs: Map[UUID, Set[Edge[_, _]]],
+  outEs: Map[UUID, Set[Edge[_, _]]]
+) extends Graph {
+  override type VertexSchema[A]     = TestVertexSchema[A]
+  override type EdgeSchema[F, T, E] = TestEdgeSchema[F, T, E]
+}
+
+object Test {
+  val g = TestGraph(Map(), Map(), Map())
+  g.addV(10)
+  g.addV("hello")
+  //g.addV(false)//shouldn't work
+}
+
+trait Edge[F, T] {
+
+  def from: Id.VertexId[F]
+  def to: Id.VertexId[T]
+}
+
+sealed trait Id[A] {
+  type IdType
+}
+object Id {
+  final case class VertexId[A](v: A) extends Id[A] {
+    override type IdType = A
+  }
+  final case class EdgeId[A](v: A) extends Id[A] {
+    override type IdType = A
+  }
+}
+final case class Vertex[A](v: A) {
+  type V = A
+}
