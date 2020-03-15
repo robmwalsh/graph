@@ -1,56 +1,31 @@
 package com.github.unclebob418.graph
 
-import java.util.UUID
-
-import com.github.unclebob418.graph.TestVertexSchema.{ SInt, SString }
-
-abstract class Graph {
-  type VertexSchema[_]
+abstract class Graph { self =>
+  type VertexSchema[_, _]
   type EdgeSchema[_, _, _]
-  val vs: Map[Id.VertexId[_], Vertex[_]]
-  val inEs: Map[UUID, Set[Edge[_, _]]]
-  val outEs: Map[UUID, Set[Edge[_, _]]]
+  val vs: Map[Id.VertexId[_], Vertex[_, _]]
+  val inEs: Map[Id.EdgeId[_], Set[Edge[_, _]]]
+  val outEs: Map[Id.EdgeId[_], Set[Edge[_, _]]]
 
-  def addV[V](v: V)(implicit ev: VertexSchema[V]): Option[Graph] = ???
+  def addV[I, V](v: V)(implicit ev: VertexSchema[I, V]): Option[Graph] = ???
   //[F]rom -> [E]dge -> [T]o
   def addE[F, E, T](e: E)(implicit ev: EdgeSchema[F, E, T]): Option[Graph] = ???
 
-}
-sealed trait VSchema[A] {
-  type Id
-  //def id[A](a: A => Id): Id
-}
-sealed trait TestVertexSchema[A] extends VSchema[A]
-object TestVertexSchema {
-  implicit case object SInt extends TestVertexSchema[Int] {
-    override type Id = String
-    //override def id[A, B <: String](a: Int): String = a.toString
+  private def update(
+    vs0: Map[Id.VertexId[_], Vertex[_, _]] = self.vs,
+    inEs0: Map[Id.EdgeId[_], Set[Edge[_, _]]] = self.inEs,
+    outEs0: Map[Id.EdgeId[_], Set[Edge[_, _]]] = self.outEs
+  ): Graph = new Graph {
+    override type VertexSchema[_, _]  = self.VertexSchema[_, _]
+    override type EdgeSchema[_, _, _] = self.EdgeSchema[_, _, _]
+    val vs: Map[Id.VertexId[_], Vertex[_, _]]     = vs0
+    val inEs: Map[Id.EdgeId[_], Set[Edge[_, _]]]  = inEs0
+    val outEs: Map[Id.EdgeId[_], Set[Edge[_, _]]] = outEs0
   }
-  implicit case object SString extends TestVertexSchema[String] {
-    override type Id = String
-    //override def id[String](a: String => String): String
-  }
-}
-sealed trait TestEdgeSchema[F, E, T]
-object TestEdgeSchema {
-  implicit case object IntStringString extends TestEdgeSchema[Int, String, String]
-  implicit case object IntStringInt    extends TestEdgeSchema[Int, String, Int]
-}
 
-case class TestGraph(
-  vs: Map[Id.VertexId[_], Vertex[_]],
-  inEs: Map[UUID, Set[Edge[_, _]]],
-  outEs: Map[UUID, Set[Edge[_, _]]]
-) extends Graph {
-  override type VertexSchema[A]     = TestVertexSchema[A]
-  override type EdgeSchema[F, T, E] = TestEdgeSchema[F, T, E]
 }
-
-object Test {
-  val g = TestGraph(Map(), Map(), Map())
-  g.addV(10)
-  g.addV("hello")
-  //g.addV(false)//shouldn't work
+trait VSchema[I, V] {
+  def id(v: V): I
 }
 
 trait Edge[F, T] {
@@ -70,6 +45,6 @@ object Id {
     override type IdType = A
   }
 }
-final case class Vertex[A](v: A) {
-  type V = A
+final case class Vertex[I, V0](id: I, v: V0) {
+  type V = V0
 }
