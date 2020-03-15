@@ -7,19 +7,15 @@ object TestVertexSchema {
   implicit case object SInt    extends TestVertexSchema[Int]
   implicit case object SString extends TestVertexSchema[String]
 }
-sealed trait TestEdgeSchema[F, E, T]
+sealed trait TestEdgeSchema[F, E, T] extends ESchema[F, E, T]
 object TestEdgeSchema {
   implicit case object IntStringString extends TestEdgeSchema[Int, String, String]
   implicit case object StringStringInt extends TestEdgeSchema[String, String, Int]
 }
 
-case class TestGraph(
-  vs: Map[UUID, Vertex],
-  inEs: Map[UUID, Set[Edge]],
-  outEs: Map[UUID, Set[Edge]]
-) extends Graph {
-  override type VertexSchema[V]     = TestVertexSchema[V]
-  override type EdgeSchema[F, T, E] = TestEdgeSchema[F, T, E]
+case class TestGraph( override val vs: Map[Any, Any],
+                      override val inEs: Map[Any, Set[Any]],
+                      override val outEs: Map[Any, Set[Any]]) extends Graph[TestVertexSchema[_], TestEdgeSchema[_,_,_]] {
 }
 
 object Test {
