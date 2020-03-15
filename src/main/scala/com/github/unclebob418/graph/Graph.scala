@@ -1,14 +1,16 @@
 package com.github.unclebob418.graph
 
 abstract class Graph { self =>
+  //[I]d -> [V]ertex
   type VertexSchema[_, _]
+  //[F]rom -> [E]dge -> [T]o
   type EdgeSchema[_, _, _]
   val vs: Map[Id.VertexId[_], Vertex[_, _]]
   val inEs: Map[Id.EdgeId[_], Set[Edge[_, _]]]
   val outEs: Map[Id.EdgeId[_], Set[Edge[_, _]]]
 
-  def addV[I, V](v: V)(implicit ev: VertexSchema[I, V]): Option[Graph] = ???
-  //[F]rom -> [E]dge -> [T]o
+  def addV[I, V](i: I, v: V)(implicit ev: VertexSchema[I, V]): Option[Graph] = ???
+
   def addE[F, E, T](e: E)(implicit ev: EdgeSchema[F, E, T]): Option[Graph] = ???
 
   private def update(
@@ -16,8 +18,8 @@ abstract class Graph { self =>
     inEs0: Map[Id.EdgeId[_], Set[Edge[_, _]]] = self.inEs,
     outEs0: Map[Id.EdgeId[_], Set[Edge[_, _]]] = self.outEs
   ): Graph = new Graph {
-    override type VertexSchema[_, _]  = self.VertexSchema[_, _]
-    override type EdgeSchema[_, _, _] = self.EdgeSchema[_, _, _]
+    override type VertexSchema  = self.VertexSchema[_, _]
+    override type EdgeSchema = self.EdgeSchema[_, _, _]
     val vs: Map[Id.VertexId[_], Vertex[_, _]]     = vs0
     val inEs: Map[Id.EdgeId[_], Set[Edge[_, _]]]  = inEs0
     val outEs: Map[Id.EdgeId[_], Set[Edge[_, _]]] = outEs0
@@ -25,7 +27,6 @@ abstract class Graph { self =>
 
 }
 trait VSchema[I, V] {
-  def id(v: V): I
 }
 
 trait Edge[F, T] {
