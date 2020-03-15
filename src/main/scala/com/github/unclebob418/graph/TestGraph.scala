@@ -2,31 +2,32 @@ package com.github.unclebob418.graph
 
 import java.util.UUID
 
-sealed trait TestVertexSchema[I, V] extends VSchema[I, V]
+sealed trait TestVertexSchema[V] extends VSchema[V]
 object TestVertexSchema {
-  implicit case object SIntInt extends TestVertexSchema[Int, Int]
-  implicit case object SIntString extends TestVertexSchema[Int, String]
-  implicit case object SStringString extends TestVertexSchema[String, String]
+  implicit case object SInt    extends TestVertexSchema[Int]
+  implicit case object SString extends TestVertexSchema[String]
 }
 sealed trait TestEdgeSchema[F, E, T]
 object TestEdgeSchema {
   implicit case object IntStringString extends TestEdgeSchema[Int, String, String]
-  implicit case object StringStringInt    extends TestEdgeSchema[String, String, Int]
+  implicit case object StringStringInt extends TestEdgeSchema[String, String, Int]
 }
 
 case class TestGraph(
-  vs: Map[Id.VertexId[_], Vertex[_, _]],
-  inEs: Map[Id.EdgeId[_], Set[Edge[_, _]]],
-  outEs: Map[Id.EdgeId[_], Set[Edge[_, _]]]
+  vs: Map[UUID, Vertex],
+  inEs: Map[UUID, Set[Edge]],
+  outEs: Map[UUID, Set[Edge]]
 ) extends Graph {
-  override type VertexSchema[I, V]  = TestVertexSchema[I, V]
+  override type VertexSchema[V]     = TestVertexSchema[V]
   override type EdgeSchema[F, T, E] = TestEdgeSchema[F, T, E]
 }
 
 object Test {
   val g = TestGraph(Map(), Map(), Map())
-  g.addV(5, 10)
-  g.addV(7, "hello")
-  g.addV("hello", "world")
+  g.addV(UUID.randomUUID(), 5)
+  g.addV(UUID.randomUUID(), "hello")
+  //g.addV(UUID.randomUUID(), true) //shouldn't work, doesn't work :)
+  val v: Vertex = Vertex(UUID.randomUUID(), "hi")
+  //val s: String = v.value
   //g.addV("hello", 7)//shouldn't work
 }

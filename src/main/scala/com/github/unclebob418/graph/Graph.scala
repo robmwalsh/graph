@@ -1,51 +1,52 @@
 package com.github.unclebob418.graph
 
+import java.util.UUID
+
 abstract class Graph { self =>
   //[I]d -> [V]ertex
-  type VertexSchema[_, _]
+  type VertexSchema[_]
   //[F]rom -> [E]dge -> [T]o
   type EdgeSchema[_, _, _]
-  val vs: Map[Id.VertexId[_], Vertex[_, _]]
-  val inEs: Map[Id.EdgeId[_], Set[Edge[_, _]]]
-  val outEs: Map[Id.EdgeId[_], Set[Edge[_, _]]]
+  val vs: Map[UUID, Vertex]
+  val inEs: Map[UUID, Set[Edge]]
+  val outEs: Map[UUID, Set[Edge]]
 
-  def addV[I, V](id: I, value: V)(implicit ev: VertexSchema[I, V]): Option[Graph] =
-    update(vs + (Id.VertexId(id), Vertex(Id.VertexId(id), value)))
+  def addV[V](id: UUID, value: V)(implicit ev: VertexSchema[V]): Option[Graph] =
+    Some(update(vs + (id -> Vertex(id, value))))
 
   def addE[F, E, T](e: E)(implicit ev: EdgeSchema[F, E, T]): Option[Graph] = ???
 
   private def update(
-    vs0: Map[Id.VertexId[_], Vertex[_, _]] = self.vs,
-    inEs0: Map[Id.EdgeId[_], Set[Edge[_, _]]] = self.inEs,
-    outEs0: Map[Id.EdgeId[_], Set[Edge[_, _]]] = self.outEs
+    vs0: Map[UUID, Vertex] = self.vs,
+    inEs0: Map[UUID, Set[Edge]] = self.inEs,
+    outEs0: Map[UUID, Set[Edge]] = self.outEs
   ): Graph = new Graph {
-    override type VertexSchema[A, B]   = self.VertexSchema[A, B]
+    override type VertexSchema[A]  = self.VertexSchema[A]
     override type EdgeSchema[A, B, C] = self.EdgeSchema[A, B, C]
-    val vs: Map[Id.VertexId[_], Vertex[_, _]]     = vs0
-    val inEs: Map[Id.EdgeId[_], Set[Edge[_, _]]]  = inEs0
-    val outEs: Map[Id.EdgeId[_], Set[Edge[_, _]]] = outEs0
+    val vs: Map[UUID, Vertex]             = vs0
+    val inEs: Map[UUID, Set[Edge]]  = inEs0
+    val outEs: Map[UUID, Set[Edge]] = outEs0
   }
 
 }
-trait VSchema[I, V] {}
+trait VSchema[V]
 
-trait Edge[F, T] {
+trait Edge {
 
-  def from: Id.VertexId[F]
-  def to: Id.VertexId[T]
+  def from: UUID
+  def to: UUID
 }
 
-sealed trait Id[A] {
-  type IdType
+sealed abstract class Vertex {
+  type V
+  val id: UUID
+  val value: V
 }
-object Id {
-  final case class VertexId[A](v: A) extends Id[A] {
-    override type IdType = A
+object Vertex {
+  def apply[I0, V0](id0: UUID, value0: V0): Vertex = new Vertex {
+    type I = I0
+    type V = V0
+    val id    = id0
+    val value = value0
   }
-  final case class EdgeId[A](v: A) extends Id[A] {
-    override type IdType = A
-  }
-}
-final case class Vertex[I, V0](id: Id.VertexId[I], v: V0) {
-  type V = V0
 }
