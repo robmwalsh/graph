@@ -16,7 +16,6 @@ case class Graph[VS[_] <: VSchema[_], ES[_, _, _] <: ESchema[_, _, _]](
 }
 
 trait Edge {
-
   def from: UUID
   def to: UUID
 }

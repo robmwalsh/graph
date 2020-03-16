@@ -13,13 +13,9 @@ object TestEdgeSchema {
   implicit case object StringStringInt extends TestEdgeSchema[String, String, Int]
 }
 
-case class TestGraph( override val vs: Map[Any, Any],
-                      override val inEs: Map[Any, Set[Any]],
-                      override val outEs: Map[Any, Set[Any]]) extends Graph[TestVertexSchema[_], TestEdgeSchema[_,_,_]] {
-}
 
 object Test {
-  val g = TestGraph(Map(), Map(), Map())
+  val g = Graph[TestVertexSchema, TestEdgeSchema](Map(), Map(), Map())
   g.addV(UUID.randomUUID(), 5)
   g.addV(UUID.randomUUID(), "hello")
   //g.addV(UUID.randomUUID(), true) //shouldn't work, doesn't work :)
