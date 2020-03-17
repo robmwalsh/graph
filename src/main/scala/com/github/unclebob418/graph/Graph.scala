@@ -2,17 +2,22 @@ package com.github.unclebob418.graph
 
 import java.util.UUID
 
-case class Graph[VS[_] <: VSchema[_], ES[_, _, _] <: ESchema[_, _, _]](
-  vs: Map[Any, Any],
+final case class Graph[VS[_] <: VSchema[_], ES[_, _, _] <: ESchema[_, _, _]](
+  vs: VertexMap[VS],
   inEs: Map[Any, Set[Any]],
   outEs: Map[Any, Set[Any]]
 ) {
 
-  def addV[V](id: UUID, value: V)(implicit ev: VS[V]): Option[Graph[VS, ES]] = ???
-    //Some(copy(vs + (id -> Vertex(id, value))))
+  def addV[V](key: VertexKey[V], value: V)(implicit vType: VS[V]): Option[Graph[VS, ES]] =
+    Some(copy(vs.put(key, value)))
 
   def addE[F, E, T](e: E)(implicit ev: ES[F, E, T]): Option[Graph[VS, ES]] = ???
 
+  def getAll[V](implicit vType: VS[V]): Option[Map[VertexKey[V], V]] = vs.getAll[V]
+}
+object Graph {
+  def empty[VS[_] <: VSchema[_], ES[_, _, _] <: ESchema[_, _, _]]: Graph[VS, ES] =
+    Graph[VS, ES](VertexMap.empty, Map(), Map())
 }
 
 trait Edge {
