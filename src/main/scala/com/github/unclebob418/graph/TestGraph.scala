@@ -4,8 +4,11 @@ import java.util.UUID
 
 sealed trait TestVertexSchema[V] extends VSchema[V]
 object TestVertexSchema {
+  //todo merge these somehow
   implicit case object SInt    extends TestVertexSchema[Int]
+  final case class IntKey(uuid: UUID = UUID.randomUUID())    extends VertexKey[Int]
   implicit case object SString extends TestVertexSchema[String]
+  final case class StringKey(uuid: UUID = UUID.randomUUID()) extends VertexKey[String]
 }
 sealed trait TestEdgeSchema[F, E, T] extends ESchema[F, E, T]
 object TestEdgeSchema {

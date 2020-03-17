@@ -18,17 +18,19 @@ object PolyMap {
 trait ESchema[F, E, T]
 
 trait VertexKey[+V] extends Key[V]
-final case class IntKey(uuid: UUID) extends VertexKey[Int]
-final case class StringKey(uuid: UUID) extends VertexKey[String]
 
 trait VSchema[V]
 
-final class VertexMap[VS[_] <: VSchema[_]] private (private val map: Map[Any, Any]) {
+final class VertexMap[VS[_] <: VSchema[_]] private (private val map: Map[Any, Map[Any, Any]]) {
   def put[K, V](key: VertexKey[V], value: V)(implicit ev: VS[V]): VertexMap[Nothing] =
-    new VertexMap(map + (key -> value))
-  def get[K, V](key: VertexKey[V])(implicit ev: VS[V]): Option[V] =
-    map.get(key).asInstanceOf[Option[V]]
-}
-object VertexMap {
+    new VertexMap(map.get(key) match {
+      case Some(subMap) => map + (ev -> (subMap + (key -> value)))
+      case None         => map + (ev -> Map(key -> value))
+    })
 
+  def get[K, V](key: VertexKey[V])(implicit ev: VS[V]): Option[V] =
+    map.get(ev).flatMap(_.get(key).asInstanceOf[Option[V]])
+
+  def getAll[V](implicit ev: VS[V]): Map[VertexKey[V], V] = map.get(ev).asInstanceOf[Map[VertexKey[V], V]]
 }
+object VertexMap {}
