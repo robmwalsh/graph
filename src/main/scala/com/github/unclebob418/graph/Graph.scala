@@ -2,7 +2,7 @@ package com.github.unclebob418.graph
 
 import java.util.UUID
 
-final case class Graph[VS[_] <: VSchema[_], ES[_, _, _] <: ESchema[_, _, _]](
+final case class Graph[VS[_] <: VertexSchema[_], ES[_, _, _] <: ESchema[_, _, _]](
   vs: VertexMap[VS],
   inEs: Map[Any, Set[Any]],
   outEs: Map[Any, Set[Any]]
@@ -16,7 +16,7 @@ final case class Graph[VS[_] <: VSchema[_], ES[_, _, _] <: ESchema[_, _, _]](
   def getAll[V](implicit vType: VS[V]): Option[Map[VertexKey[V], V]] = vs.getAll[V]
 }
 object Graph {
-  def empty[VS[_] <: VSchema[_], ES[_, _, _] <: ESchema[_, _, _]]: Graph[VS, ES] =
+  def empty[VS[_] <: VertexSchema[_], ES[_, _, _] <: ESchema[_, _, _]]: Graph[VS, ES] =
     Graph[VS, ES](VertexMap.empty, Map(), Map())
 }
 
