@@ -13,6 +13,9 @@ final case class Graph[VS[_, _] <: VertexSchema[_, _], ES[_, _, _] <: ESchema[_,
 
   def addE[F, E, T](e: E)(implicit ev: ES[F, E, T]): Option[Graph[VS, ES]] = ???
 
+  def getV[K, V](vk: VertexKey[K, V])(implicit vType: VS[K, V]): Option[V] =
+    vs.get(vk)
+
   def getAll[K, V](implicit vType: VS[K, V]): Option[Map[VertexKey[K, V], V]] = vs.getAll[K, V]
 }
 object Graph {

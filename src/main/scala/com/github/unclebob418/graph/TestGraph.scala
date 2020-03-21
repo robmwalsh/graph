@@ -20,13 +20,18 @@ object TestEdgeSchema {
 }
 
 object Test extends App {
+  val k1 = StringKey(UUID.nameUUIDFromBytes(Array[Byte](1)))
+  val k2 = StringKey(UUID.nameUUIDFromBytes(Array[Byte](2)))
   val g = Graph
     .empty[TestVertexSchema, TestEdgeSchema]
     .addV(IntKey(), 5)
-    .addV(StringKey(), "hello")
-    .addV(StringKey(), "world")
+    .addV(k1, "hello")
+    .addV(k2, "world")
   //g.addV(IntKey(), "not an int") //shouldn't work, doesn't work
-  println(g.getAll[UUID, String])
-  println(g.getAll[UUID, String])
+  println(g.getAll[UUID, Int])
+  println(g.getV(k1))
+  val strings: Map[VertexKey[UUID, String], String] =  g.getAll[UUID, String].head
+  println(strings)
+  println(strings.get(k1))
 
 }
