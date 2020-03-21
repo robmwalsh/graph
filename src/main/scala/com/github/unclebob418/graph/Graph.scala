@@ -2,21 +2,21 @@ package com.github.unclebob418.graph
 
 import java.util.UUID
 
-final case class Graph[VS[_] <: VertexSchema[_], ES[_, _, _] <: ESchema[_, _, _]](
+final case class Graph[VS[_, _] <: VertexSchema[_, _], ES[_, _, _] <: ESchema[_, _, _]](
   vs: VertexMap[VS],
   inEs: Map[Any, Set[Any]],
   outEs: Map[Any, Set[Any]]
 ) {
 
-  def addV[V](key: VertexKey[V], value: V)(implicit vType: VS[V]): Option[Graph[VS, ES]] =
-    Some(copy(vs.put(key, value)))
+  def addV[K, V](key: VertexKey[K, V], value: V)(implicit vType: VS[K, V]): Graph[VS, ES] =
+    copy(vs.put(key, value)) //todo validate Some(A)
 
   def addE[F, E, T](e: E)(implicit ev: ES[F, E, T]): Option[Graph[VS, ES]] = ???
 
-  def getAll[V](implicit vType: VS[V]): Option[Map[VertexKey[V], V]] = vs.getAll[V]
+  def getAll[K, V](implicit vType: VS[K, V]): Option[Map[VertexKey[K, V], V]] = vs.getAll[K, V]
 }
 object Graph {
-  def empty[VS[_] <: VertexSchema[_], ES[_, _, _] <: ESchema[_, _, _]]: Graph[VS, ES] =
+  def empty[VS[_,_] <: VertexSchema[_, _], ES[_, _, _] <: ESchema[_, _, _]]: Graph[VS, ES] =
     Graph[VS, ES](VertexMap.empty, Map(), Map())
 }
 
