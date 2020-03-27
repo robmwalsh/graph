@@ -13,6 +13,7 @@ final class PolyMap private (private val map: Map[Any, Any]) {
 
 object PolyMap {
   def empty: PolyMap = new PolyMap(Map.empty)
+
 }
 
 

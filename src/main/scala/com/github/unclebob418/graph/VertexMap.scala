@@ -1,6 +1,6 @@
 package com.github.unclebob418.graph
 
-trait VertexKey[K, +V] {
+trait VertexKey[+K, +V] {
   val key: K
 }
 

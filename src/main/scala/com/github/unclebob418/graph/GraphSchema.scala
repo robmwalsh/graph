@@ -4,7 +4,6 @@ package com.github.unclebob418.graph
 
 abstract class GraphSchema {
   type VS[_, _] <: VertexSchema[_, _]
-  type ES[_, _, _] <: EdgeSchema[_, _, _]
 }
 
 /*object ASchema extends GraphSchema {
