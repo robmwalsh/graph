@@ -20,32 +20,33 @@ object TestVertexSchema {
 sealed trait TestEdgeSchema[_] extends EdgeSchema[TestVertexSchema]
 object TestEdgeSchema {
   sealed trait TestEdgeKey[K, V] extends EdgeKey[K, V]
-  implicit case object StringToString extends TestEdgeSchema[TestVertexSchema[_,_]] {
-    override type In  = StringKey
-    override type Out = IntKey
+  implicit case object StringToString extends TestEdgeSchema[TestVertexSchema[_, _]] {
+    override type In  = TestVertexSchema[UUID, String]
+    override type Out = TestVertexSchema[UUID, String]
     override type E   = String
   }
   final case class StringEKey(key: UUID = UUID.randomUUID()) extends TestEdgeKey[UUID, String]
 }
 
 object Test extends App {
-  val k1  = StringKey ()//UUID.nameUUIDFromBytes(Array[Byte](1)))
-  val k2  = StringKey ()//UUID.nameUUIDFromBytes(Array[Byte](2)))
-  val k3  = IntKey    ()//UUID.nameUUIDFromBytes(Array[Byte](3)))
-  val ek1 = StringEKey()//UUID.nameUUIDFromBytes(Array[Byte](4)))
-  val g = (Some(
-    Graph
-      .empty[TestVertexSchema, TestEdgeSchema[TestVertexSchema[_,_]]]
-  ) flatMap (_.addV(IntKey(), 5))
-    flatMap (_.addV(k1, "hello"))
-    flatMap (_.addV(k2, "world"))
-    flatMap (_.addE(k1, ek1, " joined to ", k3))).head
-  println(g.getAllVs(StringKey))
-  println(g.getV(k1))
+  val stringKey1 = StringKey()  //UUID.nameUUIDFromBytes(Array[Byte](1)))
+  val stringKey2 = StringKey()  //UUID.nameUUIDFromBytes(Array[Byte](2)))
+  val intKey1    = IntKey()     //UUID.nameUUIDFromBytes(Array[Byte](3)))
+  val ek1        = StringEKey() //UUID.nameUUIDFromBytes(Array[Byte](4)))
+  val g = (Some(Graph.empty[TestVertexSchema, TestEdgeSchema[TestVertexSchema[_, _]]])
+    flatMap (_.addV(intKey1, 5))
+    flatMap (_.addV(stringKey1, "hello"))
+    flatMap (_.addV(stringKey2, "world"))
+    flatMap (_.addV(intKey1, 42))
+    flatMap (_.addE(stringKey1, ek1, " joined to ", stringKey2))
+    flatMap (_.addE(intKey1, ek1, " joined to ", stringKey2))
+    ).head
+  println(g.getVs(StringKey))
+  println(g.getV(stringKey1))
   println(g)
-  val strings = g.getAllVs[UUID, String].head
+  val strings = g.getVs[UUID, String].head
   println(strings)
-  println(strings.get(k1))
+  println(strings.get(stringKey1))
   /*  Doesn't work, would like it to
     val gIntString = Graph
     .empty[IntSchema[_, _] with StringSchema[_, _], TestVertexSchema]

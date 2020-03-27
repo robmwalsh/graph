@@ -12,7 +12,7 @@ final case class Graph[VS[_, _] <: VertexSchema[_, _], ES <: EdgeSchema[VS]](
     Some(copy(vs.addV(key, value))) //todo validate Some(A)
 
   def addE[K, E0, IK, IV, OK, OV](inVK: VertexKey[IK, IV], edgeKey: EdgeKey[K, E0], e: E0, outVK: VertexKey[OK, OV])(
-    implicit eSchema: ES {
+    implicit eType: ES {
       type In  = VS[IK, IV]
       type Out = VS[OK, OV]
       type E   = E0
@@ -24,7 +24,7 @@ final case class Graph[VS[_, _] <: VertexSchema[_, _], ES <: EdgeSchema[VS]](
   def getV[K, V](vk: VertexKey[K, V])(implicit vType: VS[K, V]): Option[V] =
     vs.getV(vk)
 
-  def getAllVs[K, V](implicit vType: VS[K, V]): Option[Map[VertexKey[K, V], V]] = vs.getAll[K, V]
+  def getVs[K, V](implicit vType: VS[K, V]): Option[Map[VertexKey[K, V], V]] = vs.getAll[K, V]
 }
 object Graph {
   def empty[VS[_, _] <: VertexSchema[_, _], ES <: EdgeSchema[VS]]: Graph[VS, ES] =
