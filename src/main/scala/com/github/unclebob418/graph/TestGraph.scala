@@ -2,7 +2,8 @@ package com.github.unclebob418.graph
 
 import java.util.UUID
 
-import com.github.unclebob418.graph.TestVertexSchema.{ IntKey, StringKey, TestVertexSchema }
+import com.github.unclebob418.graph.TestEdgeSchema.StringEKey
+import com.github.unclebob418.graph.TestVertexSchema.{IntKey, StringKey, TestVertexSchema}
 
 object TestVertexSchema {
   sealed trait TestVertexSchema[K, V] extends VertexSchema[K, V]
@@ -28,24 +29,32 @@ object StringSchema {
   final case class StringKey(key: String) extends VertexKey[String, String]
 }
 
-sealed trait TestEdgeSchema[F, E, T] extends ESchema[F, E, T]
+sealed trait TestEdgeSchema[F, E, T] extends EdgeSchema[F, E, T]
 object TestEdgeSchema {
-  implicit case object IntStringString extends TestEdgeSchema[Int, String, String]
-  implicit case object StringStringInt extends TestEdgeSchema[String, String, Int]
+  sealed trait TestEdgeKey[K, V]                             extends EdgeKey[K, V]
+  implicit case object IntStringString                       extends TestEdgeSchema[Int, String, String]
+  implicit case object StringStringString                      extends TestEdgeSchema[StringKey, String, StringKey]
+  final case class StringEKey(key: UUID = UUID.randomUUID()) extends TestEdgeKey[UUID, String]
 }
 
+
+
 object Test extends App {
-  val k1 = StringKey(UUID.nameUUIDFromBytes(Array[Byte](1)))
-  val k2 = StringKey(UUID.nameUUIDFromBytes(Array[Byte](2)))
-  val g = Graph
-    .empty[TestVertexSchema, TestEdgeSchema]
-    .addV(IntKey(), 5)
-    .addV(k1, "hello")
-    .addV(k2, "world")
+  val k1  = StringKey(UUID.nameUUIDFromBytes(Array[Byte](1)))
+  val k2  = StringKey(UUID.nameUUIDFromBytes(Array[Byte](2)))
+  val ek1 = StringEKey(UUID.nameUUIDFromBytes(Array[Byte](3)))
+  val g = (Some(
+    Graph
+      .empty[TestVertexSchema, TestEdgeSchema]
+  ) flatMap (_.addV(IntKey(), 5))
+    flatMap (_.addV(k1, "hello"))
+    flatMap (_.addV(k2, "world"))
+    flatMap (_.addE(k1, ek1, " joined to ", k2))).head
   //g.addV(IntKey(), "not an int") //shouldn't work, doesn't work
-  println(g.getAll(StringKey))
+  println(g.getAllVs(StringKey))
   println(g.getV(k1))
-  val strings = g.getAll[UUID, String].head
+  println(g)
+  val strings = g.getAllVs[UUID, String].head
   println(strings)
   println(strings.get(k1))
 
@@ -57,7 +66,7 @@ object Test extends App {
     .empty[StringSchema, TestEdgeSchema]
     .addV(StringSchema.StringKey("hello"), "world")
 
-/*  Doesn't work, would like it to
+  /*  Doesn't work, would like it to
     val gIntString = Graph
     .empty[IntSchema[_, _] with StringSchema[_, _], TestVertexSchema]
     .addV(IntSchema.IntKey(10), 5)

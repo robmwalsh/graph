@@ -2,30 +2,28 @@ package com.github.unclebob418.graph
 
 import java.util.UUID
 
-final case class Graph[VS[_, _] <: VertexSchema[_, _], ES[_, _, _] <: ESchema[_, _, _]](
+final case class Graph[VS[_, _] <: VertexSchema[_, _], ES[_, _, _] <: EdgeSchema[_, _, _]](
   vs: VertexMap[VS],
-  inEs: Map[Any, Set[Any]],
-  outEs: Map[Any, Set[Any]]
-) {
+  es: EdgeMap[ES]
+) extends Product with Serializable{
 
-  def addV[K, V](key: VertexKey[K, V], value: V)(implicit vType: VS[K, V]): Graph[VS, ES] =
-    copy(vs.put(key, value)) //todo validate Some(A)
+  def addV[K, V](key: VertexKey[K, V], value: V)(implicit vType: VS[K, V]): Option[Graph[VS, ES]] =
+    Some(copy(vs.addV(key, value))) //todo validate Some(A)
 
-  def addE[F, E, T](e: E)(implicit ev: ES[F, E, T]): Option[Graph[VS, ES]] = ???
+  def addE[K, E, IK, IV, OK, OV](inVK: VertexKey[IK, IV], edgeKey: EdgeKey[K, E], e: E, outVK: VertexKey[IK, IV])(
+    implicit  iVType: VS[IK, IV], oVType: VS[OK, OV]
+  ): Option[Graph[VS, ES]] = Some(copy(vs, es.addE(inVK, edgeKey, e, outVK)))
+
+  def containsV[K, V](vk: VertexKey[K, V])(implicit vType: VS[K, V]): Boolean = vs.containsV(vk)
 
   def getV[K, V](vk: VertexKey[K, V])(implicit vType: VS[K, V]): Option[V] =
-    vs.get(vk)
+    vs.getV(vk)
 
-  def getAll[K, V](implicit vType: VS[K, V]): Option[Map[VertexKey[K, V], V]] = vs.getAll[K, V]
+  def getAllVs[K, V](implicit vType: VS[K, V]): Option[Map[VertexKey[K, V], V]] = vs.getAll[K, V]
 }
 object Graph {
-  def empty[VS[_,_] <: VertexSchema[_, _], ES[_, _, _] <: ESchema[_, _, _]]: Graph[VS, ES] =
-    Graph[VS, ES](VertexMap.empty, Map(), Map())
-}
-
-trait Edge {
-  def from: UUID
-  def to: UUID
+  def empty[VS[_, _] <: VertexSchema[_, _], ES[_, _, _] <: EdgeSchema[_, _, _]]: Graph[VS, ES] =
+    Graph[VS, ES](VertexMap.empty, EdgeMap.empty)
 }
 
 sealed abstract class Vertex {

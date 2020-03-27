@@ -15,6 +15,6 @@ object PolyMap {
   def empty: PolyMap = new PolyMap(Map.empty)
 }
 
-trait ESchema[F, E, T]
+
 
 
