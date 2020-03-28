@@ -15,14 +15,14 @@ sealed case class Edge[K, E, IK, IV, OK, OV](
   edge: E,
   outV: VertexKey[IK, IV]
 )
-final case class EdgeMap[VS[_, _] <: VertexSchema[_, _], ES <: EdgeSchema[VS]] private (
+final case class EdgeMap[VS[_, _] <: VertexSchema[_, _]] private (
   es: Map[Any, Any],
   inVs: Map[Any, Set[Any]],
   outVs: Map[Any, Set[Any]]
 ) {
-  def addE[K, E, IK, IV, OK, OV](inVK: VertexKey[IK, IV], edgeKey: EdgeKey[K, E], e: E, outVK: VertexKey[OK, OV]): EdgeMap[VS, ES] = {
+  def addE[K, E, IK, IV, OK, OV](inVK: VertexKey[IK, IV], edgeKey: EdgeKey[K, E], e: E, outVK: VertexKey[OK, OV]): EdgeMap[VS] = {
     val edge = Edge(inVK, edgeKey, e, outVK)
-    EdgeMap[VS,ES](
+    EdgeMap[VS](
       es + (edgeKey -> edge),
       inVs.get(inVK) match {
         case Some(set: Set[Any]) =>
@@ -37,12 +37,10 @@ final case class EdgeMap[VS[_, _] <: VertexSchema[_, _], ES <: EdgeSchema[VS]] p
           inVs + (outVK -> Set(edge))
       }
     )
-
   }
-
 }
 
 object EdgeMap {
-  def empty[ES <: EdgeSchema[VS], VS[_, _] <: VertexSchema[_, _]]: EdgeMap[VS,ES] =
-    EdgeMap[VS,ES](Map.empty[Any, Any], Map.empty[Any, Set[Any]], Map.empty[Any, Set[Any]])
+  def empty[ VS[_, _] <: VertexSchema[_, _]]: EdgeMap[VS] =
+    EdgeMap[VS](Map.empty[Any, Any], Map.empty[Any, Set[Any]], Map.empty[Any, Set[Any]])
 }

@@ -2,22 +2,27 @@ package com.github.unclebob418.graph
 
 import java.util.UUID
 
-final case class Graph[VS[_, _] <: VertexSchema[_, _], ES <: EdgeSchema[VS]](
-  vs: VertexMap[VS],
-  es: EdgeMap[VS, ES]
-) extends Product
-    with Serializable {
+sealed trait Graph[GS <: GraphSchema] { self =>
+  val vs: VertexMap[gs.VS]
+  val es: EdgeMap[gs.VS]
+  val gs: GS
+  type VS[K, V] = gs.VS[K, V]
+  def copy(vs0: VertexMap[gs.VS] = vs, es0: EdgeMap[gs.VS] = es): Graph[GS] = new Graph[GS] {
+    val vs: VertexMap[gs.VS] = vs0
+    val es: EdgeMap[gs.VS]   = es0
+    val gs                   = self.gs
+  }
 
-  def addV[K, V](key: VertexKey[K, V], value: V)(implicit vType: VS[K, V]): Option[Graph[VS, ES]] =
+  def addV[K, V](key: VertexKey[K, V], value: V)(implicit vType: VS[K, V]): Option[Graph[GS]] =
     Some(copy(vs.addV(key, value))) //todo validate Some(A)
 
   def addE[K, E0, IK, IV, OK, OV](inVK: VertexKey[IK, IV], edgeKey: EdgeKey[K, E0], e: E0, outVK: VertexKey[OK, OV])(
-    implicit eType: ES {
-      type In  = VS[IK, IV]
-      type Out = VS[OK, OV]
+    implicit eType: gs.ES {
+      type In  = gs.VS[IK, IV]
+      type Out = gs.VS[OK, OV]
       type E   = E0
     }
-  ): Option[Graph[VS, ES]] = Some(copy(vs, es.addE(inVK, edgeKey, e, outVK)))
+  ): Option[Graph[GS]] = Some(copy(vs, es.addE(inVK, edgeKey, e, outVK)))
 
   def containsV[K, V](vk: VertexKey[K, V])(implicit vType: VS[K, V]): Boolean = vs.containsV(vk)
 
@@ -27,8 +32,12 @@ final case class Graph[VS[_, _] <: VertexSchema[_, _], ES <: EdgeSchema[VS]](
   def getVs[K, V](implicit vType: VS[K, V]): Option[Map[VertexKey[K, V], V]] = vs.getAll[K, V]
 }
 object Graph {
-  def empty[VS[_, _] <: VertexSchema[_, _], ES <: EdgeSchema[VS]]: Graph[VS, ES] =
-    Graph[VS, ES](VertexMap.empty, EdgeMap.empty)
+  def empty[GS <: GraphSchema](implicit graphSchema0: GS) =
+    new Graph[GS] {
+      val vs          = VertexMap.empty[gs.VS]
+      val es          = EdgeMap.empty[gs.VS]
+      val gs = graphSchema0
+    }
 }
 
 sealed abstract class Vertex {
