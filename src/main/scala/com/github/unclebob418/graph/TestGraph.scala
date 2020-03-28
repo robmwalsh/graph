@@ -8,7 +8,7 @@ import com.github.unclebob418.graph.WrongVertexSchema.{ BooleanKey, WrongVertexS
 
 object TestVertexSchema {
   val r = scala.util.Random
-  sealed trait TestVertexSchema[K, V] extends VertexSchema[K, V]
+  sealed trait TestVertexSchema[K, V] extends VertexType[K, V]
   sealed trait TestVertexKey[K, V]    extends VertexKey[K, V]
   //todo merge these somehow
   implicit case object IntKey                   extends TestVertexSchema[Int, Int]
@@ -18,28 +18,7 @@ object TestVertexSchema {
   final case class StringKey(key: Int = r.nextInt) extends TestVertexKey[Int, String]
 
 }
-object WrongVertexSchema {
-  sealed trait WrongVertexSchema[K, V] extends VertexSchema[K, V]
-  sealed trait WrongVertexKey[K, V]    extends VertexKey[K, V]
-  //todo merge these somehow
-  implicit case object BooleanKey                            extends WrongVertexSchema[UUID, Boolean]
-  final case class BooleanKey(key: UUID = UUID.randomUUID()) extends WrongVertexKey[UUID, Boolean]
-
-}
-
-sealed trait WrongEdgeSchema
-object WrongVertexSchema {
-  sealed trait TestEdgeKey[K, V] extends EdgeKey[K, V]
-  implicit case object StringToString extends WrongEdgeSchema {
-    override type In  = TestVertexSchema[Int, String]
-    override type Out = TestVertexSchema[Int, String]
-    override type E   = String
-  }
-  final case class StringEKey(key: Int) extends TestEdgeKey[Int, String]
-
-}
-
-sealed trait TestEdgeSchema extends EdgeSchema[TestVertexSchema]
+sealed trait TestEdgeSchema extends EdgeType[TestVertexSchema]
 object TestEdgeSchema {
   sealed trait TestEdgeKey[K, V] extends EdgeKey[K, V]
   implicit case object StringToString extends TestEdgeSchema {
@@ -50,10 +29,34 @@ object TestEdgeSchema {
   final case class StringEKey(key: Int) extends TestEdgeKey[Int, String]
 }
 
+
+object WrongVertexSchema {
+  sealed trait WrongVertexSchema[K, V] extends VertexType[K, V]
+  sealed trait WrongVertexKey[K, V]    extends VertexKey[K, V]
+  //todo merge these somehow
+  implicit case object BooleanKey                            extends WrongVertexSchema[UUID, Boolean]
+  final case class BooleanKey(key: UUID = UUID.randomUUID()) extends WrongVertexKey[UUID, Boolean]
+
+}
+
+sealed trait WrongEdgeSchema extends EdgeType[WrongVertexSchema]
+object WrongEdgeSchema {
+  sealed trait TestEdgeKey[K, V] extends EdgeKey[K, V]
+  implicit case object StringToString extends WrongEdgeSchema {
+    override type In  = WrongVertexSchema[Int, String]
+    override type Out = WrongVertexSchema[Int, String]
+    override type E   = String
+  }
+  final case class StringEKey(key: Int) extends TestEdgeKey[Int, String]
+
+}
+
+
+
 object Test extends App {
   implicit val graphSchema = new GraphSchema {
-    override type VS[K, V] = TestVertexSchema[K, V]
-    override type ES       = TestEdgeSchema
+    override type VT[K, V] = TestVertexSchema[K, V]
+    override type ET       = TestEdgeSchema
   }
 
   val stringKey1 = StringKey(1)

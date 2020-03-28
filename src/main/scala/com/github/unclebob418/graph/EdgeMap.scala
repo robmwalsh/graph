@@ -1,28 +1,23 @@
 package com.github.unclebob418.graph
 
-trait EdgeSchema[VS[_, _] <: VertexSchema[_, _]] {
-  type In <: VS[_,_]
-  type Out <: VS[_,_]
-  type E
+object EdgeMap {
+  def empty[VT[_, _] <: VertexType[_, _]]: EdgeMap[VT] =
+    EdgeMap[VT](Map.empty[Any, Any], Map.empty[Any, Set[Any]], Map.empty[Any, Set[Any]])
 }
 
-trait EdgeKey[+K, +V] {
-  val key: K
-}
-sealed case class Edge[K, E, IK, IV, OK, OV](
-  inVK: VertexKey[IK, IV],
-  edgeKey: EdgeKey[K, E],
-  edge: E,
-  outV: VertexKey[IK, IV]
-)
-final case class EdgeMap[VS[_, _] <: VertexSchema[_, _]] private (
+final case class EdgeMap[VT[_, _] <: VertexType[_, _]] private(
   es: Map[Any, Any],
   inVs: Map[Any, Set[Any]],
   outVs: Map[Any, Set[Any]]
 ) {
-  def addE[K, E, IK, IV, OK, OV](inVK: VertexKey[IK, IV], edgeKey: EdgeKey[K, E], e: E, outVK: VertexKey[OK, OV]): EdgeMap[VS] = {
+  def addE[K, E, IK, IV, OK, OV](
+    inVK: VertexKey[IK, IV],
+    edgeKey: EdgeKey[K, E],
+    e: E,
+    outVK: VertexKey[OK, OV]
+  ): EdgeMap[VT] = {
     val edge = Edge(inVK, edgeKey, e, outVK)
-    EdgeMap[VS](
+    EdgeMap[VT](
       es + (edgeKey -> edge),
       inVs.get(inVK) match {
         case Some(set: Set[Any]) =>
@@ -38,9 +33,4 @@ final case class EdgeMap[VS[_, _] <: VertexSchema[_, _]] private (
       }
     )
   }
-}
-
-object EdgeMap {
-  def empty[ VS[_, _] <: VertexSchema[_, _]]: EdgeMap[VS] =
-    EdgeMap[VS](Map.empty[Any, Any], Map.empty[Any, Set[Any]], Map.empty[Any, Set[Any]])
 }
