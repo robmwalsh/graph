@@ -3,11 +3,11 @@ package com.github.unclebob418.graph
 import java.util.UUID
 
 object Graph {
-  def empty[GS <: GraphSchema](implicit graphSchema0: GS) =
+  def empty[GS <: GraphSchema](implicit gs0: GS) =
     new Graph[GS] {
       val vs = VertexMap.empty[gs.VT]
       val es = EdgeMap.empty[gs.VT]
-      val gs = graphSchema0
+      val gs = gs0
     }
 }
 

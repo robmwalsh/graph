@@ -11,13 +11,13 @@ object AirRoutesSchema extends GraphSchema {
   object AirRoutesVertexTypes {
 
     implicit case object Airports extends AirRoutesVertexTypes[Int, Airport] {
-      override def key(v: Airport): VertexKey[Int, Airport] = VertexKey(v.id, v)
+      override def key(v: Airport): VertexKey[Int, Airport] = VertexKey(v.id)
     }
     implicit case object Countries extends AirRoutesVertexTypes[Int, Country] {
-      override def key(v: Country): VertexKey[Int, Country] = VertexKey(v.id, v)
+      override def key(v: Country): VertexKey[Int, Country] = VertexKey(v.id)
     }
     implicit case object Continents extends AirRoutesVertexTypes[Int, Continent] {
-      override def key(v: Continent): VertexKey[Int, Continent] = VertexKey(v.id, v)
+      override def key(v: Continent): VertexKey[Int, Continent] = VertexKey(v.id)
     }
   }
 
@@ -30,7 +30,7 @@ object AirRoutesSchema extends GraphSchema {
       override type In  = AirRoutesVertexTypes[Int, Airport]
       override type Out = AirRoutesVertexTypes[Int, Airport]
 
-      override def key(e: Route): EdgeKey[Int, Route] = EdgeKey(e.id, e)
+      override def key(e: Route): EdgeKey[Int, Route] = EdgeKey(e.id)
     }
 
     implicit case object ContinentAirport extends AirRoutesEdgeTypes {
@@ -39,7 +39,7 @@ object AirRoutesSchema extends GraphSchema {
       override type E   = Contains
       override type Out = AirRoutesVertexTypes[Int, Airport]
 
-      override def key(e: Contains): EdgeKey[K, Contains] = EdgeKey(e.id, e)
+      override def key(e: Contains): EdgeKey[K, Contains] = EdgeKey(e.id)
     }
 
     implicit case object CountryAirport extends AirRoutesEdgeTypes {
@@ -48,7 +48,7 @@ object AirRoutesSchema extends GraphSchema {
       override type E   = Contains
       override type Out = AirRoutesVertexTypes[Int, Airport]
 
-      override def key(e: Contains): EdgeKey[K, Contains] = EdgeKey(e.id, e)
+      override def key(e: Contains): EdgeKey[K, Contains] = EdgeKey(e.id)
     }
 
     /*todo try to get this to fail compliation;
@@ -59,7 +59,7 @@ object AirRoutesSchema extends GraphSchema {
       override type E   = String
       override type Out = AirRoutesVertexTypes[String, String]
 
-      override def key(e: String): EdgeKey[K, String] = EdgeKey(e, e)
+      override def key(e: String): EdgeKey[K, String] = EdgeKey(e)
     }
 
   }

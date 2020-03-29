@@ -5,19 +5,17 @@ trait GraphSchema {
   type ET <: EdgeType[VT]
 }
 
-//todo `VertexKey` shouldn't actually contain a value, just needs to track the type
-sealed case class VertexKey[+K, +V](key: K, v: V)
+sealed case class VertexKey[+K, +V0](key: K)
 
 trait VertexType[K, V] {
   def key(v: V): VertexKey[K, V]
 }
-//todo `EdgeKey` shouldn't actually contain a value, just needs to track the type
-sealed case class EdgeKey[K, E](key: K, v: E)
+
+sealed case class EdgeKey[+K, +E0](key: K)
 
 trait EdgeType[VT[_, _] <: VertexType[_, _]] {
   type K
   type E
-  type EK = EdgeKey[K, E]
   type In <: VT[_, _]
   type Out <: VT[_, _]
 
