@@ -22,16 +22,27 @@ sealed trait Graph[GS <: GraphSchema] { self =>
     val gs                   = self.gs
   }
 
+  def addV[K, V](v: V)(implicit vType: VT[K, V]): Some[Graph[GS]] = Some(copy(vs.addV(vType.key(v), v)))
   def addV[K, V](key: VertexKey[K, V], value: V)(implicit vType: VT[K, V]): Option[Graph[GS]] =
     Some(copy(vs.addV(key, value))) //todo validate Some(A)
 
-  def addE[K, E0, IK, IV, OK, OV](inVK: VertexKey[IK, IV], edgeKey: EdgeKey[K, E0], e: E0, outVK: VertexKey[OK, OV])(
+  def addE[K, E0, IK, IV, OK, OV](inV: IV, e: E0, outV: OV)(
+    implicit eType: gs.ET {
+    type In  = gs.VT[IK, IV]
+    type Out = gs.VT[OK, OV]
+    type E   = E0
+  },
+    iVType: VT[IK, IV],
+    oVType: VT[OK, OV]
+  ): Option[Graph[GS]] = addE(iVType.key(inV), e, oVType.key(outV))
+
+  def addE[K, E0, IK, IV, OK, OV](inVK: VertexKey[IK, IV], e: E0, outVK: VertexKey[OK, OV])(
     implicit eType: gs.ET {
       type In  = gs.VT[IK, IV]
       type Out = gs.VT[OK, OV]
       type E   = E0
     }
-  ): Option[Graph[GS]] = Some(copy(vs, es.addE(inVK, edgeKey, e, outVK)))
+  ): Option[Graph[GS]] = Some(copy(vs, es.addE(inVK, eType.key(e), e, outVK)))
 
   def containsV[K, V](vk: VertexKey[K, V])(implicit vType: VT[K, V]): Boolean = vs.containsV(vk)
 

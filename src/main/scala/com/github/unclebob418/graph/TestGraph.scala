@@ -1,89 +1,112 @@
 package com.github.unclebob418.graph
 
-import java.util.UUID
+//based on https://github.com/krlawrence/graph/tree/master/sample-data
+import com.github.unclebob418.graph.AirRoutesSchema.{Airport, Contains, Continent, Country, Route}
 
-import com.github.unclebob418.graph.TestEdgeSchema.StringEKey
-import com.github.unclebob418.graph.TestVertexSchema.{ IntKey, StringKey, TestVertexSchema }
-import com.github.unclebob418.graph.WrongVertexSchema.{ BooleanKey, WrongVertexSchema }
+object AirRoutesSchema extends GraphSchema {
+  override type VT[K, V] = AirRoutesVertexTypes[K, V]
+  override type ET       = AirRoutesEdgeTypes
 
-object TestVertexSchema {
-  val r = scala.util.Random
-  sealed trait TestVertexSchema[K, V] extends VertexType[K, V]
-  sealed trait TestVertexKey[K, V]    extends VertexKey[K, V]
-  //todo merge these somehow
-  implicit case object IntKey                   extends TestVertexSchema[Int, Int]
-  final case class IntKey(key: Int = r.nextInt) extends TestVertexKey[Int, Int]
+  sealed trait AirRoutesVertexTypes[K, V] extends VertexType[K, V]
+  object AirRoutesVertexTypes {
 
-  implicit case object StringKey                   extends TestVertexSchema[Int, String]
-  final case class StringKey(key: Int = r.nextInt) extends TestVertexKey[Int, String]
-
-}
-sealed trait TestEdgeSchema extends EdgeType[TestVertexSchema]
-object TestEdgeSchema {
-  sealed trait TestEdgeKey[K, V] extends EdgeKey[K, V]
-  implicit case object StringToString extends TestEdgeSchema {
-    override type In  = TestVertexSchema[Int, String]
-    override type Out = TestVertexSchema[Int, String]
-    override type E   = String
+    implicit case object Airports extends AirRoutesVertexTypes[Int, Airport] {
+      override def key(v: Airport): VertexKey[Int, Airport] = VertexKey(v.id, v)
+    }
+    implicit case object Countries extends AirRoutesVertexTypes[Int, Country] {
+      override def key(v: Country): VertexKey[Int, Country] = VertexKey(v.id, v)
+    }
+    implicit case object Continents extends AirRoutesVertexTypes[Int, Continent] {
+      override def key(v: Continent): VertexKey[Int, Continent] = VertexKey(v.id, v)
+    }
   }
-  final case class StringEKey(key: Int) extends TestEdgeKey[Int, String]
-}
 
+  sealed trait AirRoutesEdgeTypes extends EdgeType[AirRoutesVertexTypes]
+  object AirRoutesEdgeTypes {
 
-object WrongVertexSchema {
-  sealed trait WrongVertexSchema[K, V] extends VertexType[K, V]
-  sealed trait WrongVertexKey[K, V]    extends VertexKey[K, V]
-  //todo merge these somehow
-  implicit case object BooleanKey                            extends WrongVertexSchema[UUID, Boolean]
-  final case class BooleanKey(key: UUID = UUID.randomUUID()) extends WrongVertexKey[UUID, Boolean]
+    implicit case object Route extends AirRoutesEdgeTypes {
+      override  type K = Int
+      override type E   = Route
+      override type In  = AirRoutesVertexTypes[Int, Airport]
+      override type Out = AirRoutesVertexTypes[Int, Airport]
 
-}
+      override def key(e: Route): EdgeKey[Int, Route] = EdgeKey(e.id, e)
+    }
 
-sealed trait WrongEdgeSchema extends EdgeType[WrongVertexSchema]
-object WrongEdgeSchema {
-  sealed trait TestEdgeKey[K, V] extends EdgeKey[K, V]
-  implicit case object StringToString extends WrongEdgeSchema {
-    override type In  = WrongVertexSchema[Int, String]
-    override type Out = WrongVertexSchema[Int, String]
-    override type E   = String
+    implicit case object ContinentAirport extends AirRoutesEdgeTypes {
+      override type K = Int
+      override type In  = AirRoutesVertexTypes[Int, Continent]
+      override type E   = Contains
+      override type Out = AirRoutesVertexTypes[Int, Airport]
+
+      override def key(e: Contains): EdgeKey[K, Contains] = EdgeKey(e.id, e)
+    }
+
+    implicit case object CountryAirport extends AirRoutesEdgeTypes {
+      override type K = Int
+      override type In  = AirRoutesVertexTypes[Int, Country]
+      override type E   = Contains
+      override type Out = AirRoutesVertexTypes[Int, Airport]
+
+      override def key(e: Contains): EdgeKey[K, Contains] = EdgeKey(e.id, e)
+    }
+
+    /*todo try to get this to fail compliation;
+         only valid vertices should be allowed on an edge*/
+    implicit case object Invalid extends AirRoutesEdgeTypes {
+      override type K = String
+      override type In  = AirRoutesVertexTypes[String, String]
+      override type E   = String
+      override type Out = AirRoutesVertexTypes[String, String]
+
+      override def key(e: String): EdgeKey[K, String] = EdgeKey(e, e)
+    }
+
   }
-  final case class StringEKey(key: Int) extends TestEdgeKey[Int, String]
-
+  //vertices
+  sealed case class Airport(id: Int, code: String, icao: String, desc: String)
+  sealed case class Country(id: Int, code: String, desc: String)
+  sealed case class Continent(id: Int, code: String, desc: String)
+  //edges
+  sealed case class Route(id: Int, distance: Int)
+  sealed case class Contains(id: Int)
 }
-
-
 
 object Test extends App {
-  implicit val graphSchema = new GraphSchema {
-    override type VT[K, V] = TestVertexSchema[K, V]
-    override type ET       = TestEdgeSchema
-  }
 
-  val stringKey1 = StringKey(1)
-  val stringKey2 = StringKey(2)
-  val intKey1    = IntKey(3)
-  val boolKey1   = BooleanKey()
-  val ek1        = StringEKey(2)
+  val syd   = Airport(1, "SYD", "YSSY", "Sydney Kingsford Smith")
+  val mel   = Airport(2, "MEL", "YMML", "Melbourne International Airport")
+  val aus   = Country(1, "AUS", "Australia")
+  val as    = Continent(1, "AS", "Australasia")
+  val route1 = Route(1, 500)
+  val route2 = Route(2, 500)
+  val contains = Contains(1)
 
-  val g = (Some(Graph.empty)
-    flatMap (_.addV(intKey1, 5))
-    flatMap (_.addV(stringKey1, "hello"))
-    flatMap (_.addV(stringKey2, "world"))
-    flatMap (_.addV(intKey1, 42))
-  //flatMap (_.addV(boolKey1, false))
-    flatMap (_.addE(stringKey1, ek1, " joined to ", stringKey2))
-  //flatMap (_.addE(intKey1, ek1, " joined to ", stringKey2))
-  ).head
-  println("getVs(StringKey)")
-  println(g.getVs(StringKey))
-  println("getV(stringKey1)")
-  println(g.getV(stringKey1))
-  println("es.es.toString()")
-  println(g.es.es.toString())
 
-  /*  Doesn't work, would like it to
-    val gIntString = Graph
-    .empty[IntSchema[_, _] with StringSchema[_, _], TestVertexSchema]
-    .addV(IntSchema.IntKey(10), 5)
-    .addV(StringSchema.StringKey("hello"), "world")*/
+
+
+  val g = (
+    Some(Graph.empty(AirRoutesSchema))
+    flatMap (_.addV(syd))
+    flatMap (_.addV(mel))
+    flatMap (_.addV(aus))
+    flatMap (_.addV(as))
+    flatMap (_.addE(syd, route1, mel))
+    flatMap (_.addE(mel, route2, syd))
+    flatMap (_.addE(aus, contains, syd))
+    flatMap (_.addE(aus, contains, mel))
+    flatMap (_.addE(as, contains, syd))
+    flatMap (_.addE(as, contains, syd))
+    ).head
+
+  println("g.getVs[Int, Airport]")
+  println(g.getVs[Int, Airport])
+  println("g.getVs[Int, Country]")
+  println(g.getVs[Int, Country])
+  println("g.getVs[Int, Continent]")
+  println(g.getVs[Int, Continent])
+
+  println("g.es")
+  println(g.es)
+
 }
