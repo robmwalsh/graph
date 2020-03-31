@@ -1,6 +1,7 @@
 package com.github.unclebob418.graph
 
 //based on https://github.com/krlawrence/graph/tree/master/sample-data
+import com.github.unclebob418.graph.AirRoutesSchema.AirRoutesVertexTypes.{Airports, Continents, Countries}
 import com.github.unclebob418.graph.AirRoutesSchema.{Airport, Contains, Continent, Country, Route}
 
 object AirRoutesSchema extends GraphSchema {
@@ -30,7 +31,7 @@ object AirRoutesSchema extends GraphSchema {
       override type In  = AirRoutesVertexTypes[Int, Airport]
       override type Out = AirRoutesVertexTypes[Int, Airport]
 
-      override def key(e: Route): EdgeKey[Int, Route] = EdgeKey(e.id)
+      override def key(e: Route): EdgeKey[Int, Route] = EdgeKey(e.id) //todo get rid of repetition? do we need option to be flexible?
     }
 
     implicit case object ContinentAirport extends AirRoutesEdgeTypes {
@@ -39,7 +40,7 @@ object AirRoutesSchema extends GraphSchema {
       override type E   = Contains
       override type Out = AirRoutesVertexTypes[Int, Airport]
 
-      override def key(e: Contains): EdgeKey[K, Contains] = EdgeKey(e.id)
+      override def key(e: Contains): EdgeKey[K, Contains] = EdgeKey(e.id)//todo get rid of repetition?
     }
 
     implicit case object CountryAirport extends AirRoutesEdgeTypes {
@@ -48,7 +49,7 @@ object AirRoutesSchema extends GraphSchema {
       override type E   = Contains
       override type Out = AirRoutesVertexTypes[Int, Airport]
 
-      override def key(e: Contains): EdgeKey[K, Contains] = EdgeKey(e.id)
+      override def key(e: Contains): EdgeKey[K, Contains] = EdgeKey(e.id)//todo get rid of repetition?
     }
 
     /*todo try to get this to fail compliation;
@@ -82,9 +83,6 @@ object Test extends App {
   val route2 = Route(2, 500)
   val contains = Contains(1)
 
-
-
-
   val g = (
     Some(Graph.empty(AirRoutesSchema))
     flatMap (_.addV(syd))
@@ -99,12 +97,12 @@ object Test extends App {
     flatMap (_.addE(as, contains, syd))
     ).head
 
-  println("g.getVs[Int, Airport]")
-  println(g.getVs[Int, Airport])
-  println("g.getVs[Int, Country]")
-  println(g.getVs[Int, Country])
-  println("g.getVs[Int, Continent]")
-  println(g.getVs[Int, Continent])
+  println("g.getVs(Airports)")
+  println(g.getVs(Airports))
+  println("g.getVs(Countries)")
+  println(g.getVs(Countries))
+  println("g.getVs(Continents)")
+  println(g.getVs(Continents))
 
   println("g.es")
   println(g.es)
