@@ -2,22 +2,28 @@ package com.github.unclebob418.graph
 
 object EdgeMap {
   def empty[VT[_, _] <: VertexType[_, _]]: EdgeMap[VT] =
-    EdgeMap[VT](Map.empty[Any, Any], Map.empty[Any, Set[Any]], Map.empty[Any, Set[Any]])
+    new EdgeMap[VT] {
+      val es    = Map.empty[Any, Any]
+      val inVs  = Map.empty[Any, Set[Any]]
+      val outVs = Map.empty[Any, Set[Any]]
+    }
 }
 
-final case class EdgeMap[VT[_, _] <: VertexType[_, _]] private(
-  es: Map[Any, Any],
-  inVs: Map[Any, Set[Any]],
-  outVs: Map[Any, Set[Any]]
-) {
+sealed trait EdgeMap[VT[_, _] <: VertexType[_, _]] { self =>
+
+  val es: Map[Any, Any]
+  val inVs: Map[Any, Set[Any]]
+  val outVs: Map[Any, Set[Any]]
+
   def addE[K, E, IK, IV, OK, OV](
     inVK: VertexKey[IK, IV],
     edgeKey: EdgeKey[K, E],
     e: E,
     outVK: VertexKey[OK, OV]
-  ): EdgeMap[VT] = {
+  )
+  : EdgeMap[VT] = {
     val edge = Edge(inVK, edgeKey, e, outVK)
-    EdgeMap[VT](
+    copy(
       es + (edgeKey -> edge),
       inVs.get(inVK) match {
         case Some(set: Set[Any]) =>
@@ -33,4 +39,16 @@ final case class EdgeMap[VT[_, _] <: VertexType[_, _]] private(
       }
     )
   }
+  def copy(
+    es0: Map[Any, Any] = es,
+    inVs0: Map[Any, Set[Any]] = inVs,
+    outVs0: Map[Any, Set[Any]] = outVs
+  ) =
+    new EdgeMap[VT] {
+      override val es: Map[Any, Any]         = Map.empty
+      override val inVs: Map[Any, Set[Any]]  = Map.empty
+      override val outVs: Map[Any, Set[Any]] = Map.empty
+    }
+
+  def getE[K, E](edgeKey: EdgeKey[K, E]) = ???
 }

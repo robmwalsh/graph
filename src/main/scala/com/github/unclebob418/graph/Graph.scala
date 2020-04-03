@@ -12,16 +12,14 @@ object Graph {
 }
 
 sealed trait Graph[GS <: GraphSchema] { self =>
-  val vs: VertexMap[gs.VT]
-  val es: EdgeMap[gs.VT]
-  implicit val gs: GS
   type ET       = gs.ET
   type VT[K, V] = gs.VT[K, V]
-  def copy(vs0: VertexMap[VT] = vs, es0: EdgeMap[VT] = es): Graph[GS] = new Graph[GS] {
-    val vs: VertexMap[VT] = vs0 //ij compiler issue
-    val es: EdgeMap[VT]   = es0 //ij compiler issue
-    val gs                = self.gs
-  }
+
+  val vs: VertexMap[gs.VT]
+  val es: EdgeMap[gs.VT]
+
+
+  implicit val gs: GS
 
   def addV[K, V](v: V)(implicit vType: VT[K, V]): Some[Graph[GS]] = Some(copy(vs.addV(vType.key(v), v)))
   def addV[K, V](key: VertexKey[K, V], value: V)(implicit vType: VT[K, V]): Option[Graph[GS]] =
@@ -46,6 +44,12 @@ sealed trait Graph[GS <: GraphSchema] { self =>
   ): Option[Graph[GS]] = Some(copy(vs, es.addE(inVK, eType.key(e), e, outVK))) //ij compiler issue
 
   def containsV[K, V](vk: VertexKey[K, V])(implicit vType: VT[K, V]): Boolean = vs.containsV(vk)
+
+  def copy(vs0: VertexMap[VT] = vs, es0: EdgeMap[VT] = es): Graph[GS] = new Graph[GS] {
+    val vs: VertexMap[VT] = vs0 //ij compiler issue
+    val es: EdgeMap[VT]   = es0 //ij compiler issue
+    val gs                = self.gs
+  }
 
   def getV[K, V](vk: VertexKey[K, V])(implicit vType: VT[K, V]): Option[V] =
     vs.getV(vk)
