@@ -29,6 +29,16 @@ final case class VertexMap[VT[_, _] <: VertexType[_, _]] private(
 
   def getAll[K, V](implicit vType: VT[K, V]): Option[Map[VertexKey[K, V], V]] =
     tMap.get(vType).asInstanceOf[Option[Map[VertexKey[K, V], V]]]
+
+  def removeV[K, V](key: VertexKey[K, V])(implicit vType: VT[K, V]): VertexMap[VT] =
+    VertexMap[VT](
+      vMap - key,
+      tMap.get(vType) match {
+        case Some(subMap) => {
+          val newMap = subMap - key
+          if (newMap.isEmpty) tMap - vType else tMap + (vType -> (subMap - key))
+        }
+        case None => tMap //shouldn't happen
+      }
+    )
 }
-
-

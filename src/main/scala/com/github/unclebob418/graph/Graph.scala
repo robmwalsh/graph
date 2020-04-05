@@ -1,14 +1,13 @@
 package com.github.unclebob418.graph
 
-import java.util.UUID
 
 object Graph {
-  def empty[GS <: GraphSchema](implicit gs0: GS) =
-    new Graph[GS] {
-      val vs = VertexMap.empty[VT]
-      val es = EdgeMap.empty[VT]
-      val gs = gs0
-    }
+  def empty[GS <: GraphSchema](implicit gs0: GS): Option[Graph[GS]] =
+    Some(new Graph[GS] {
+      val vs: VertexMap[gs.VT] = VertexMap.empty[VT]
+      val es: EdgeMap[gs.VT] = EdgeMap.empty[VT]
+      val gs: GS = gs0
+    })
 }
 
 sealed trait Graph[GS <: GraphSchema] { self =>
@@ -18,10 +17,10 @@ sealed trait Graph[GS <: GraphSchema] { self =>
   val vs: VertexMap[gs.VT]
   val es: EdgeMap[gs.VT]
 
-
   implicit val gs: GS
 
   def addV[K, V](v: V)(implicit vType: VT[K, V]): Some[Graph[GS]] = Some(copy(vs.addV(vType.key(v), v)))
+
   def addV[K, V](key: VertexKey[K, V], value: V)(implicit vType: VT[K, V]): Option[Graph[GS]] =
     Some(copy(vs.addV(key, value))) //todo validate Some(A)
 
@@ -51,10 +50,19 @@ sealed trait Graph[GS <: GraphSchema] { self =>
     val gs                = self.gs
   }
 
+  def pathTo[SK, SV, TK, TV](start: VertexKey[SK, SV], target: VertexKey[TK, TV]) = {
+    def loop[CK, CV](current: VertexKey[CK, CV], target: VertexKey[TK, TV], graph: Graph[GS]) = ???
+    ???
+  }
+
   def getV[K, V](vk: VertexKey[K, V])(implicit vType: VT[K, V]): Option[V] =
     vs.getV(vk)
 
   def getVs[K, V](implicit vType: VT[K, V]): Option[Map[VertexKey[K, V], V]] = vs.getAll[K, V]
+
+  def getE[K, V](ek: EdgeKey[K, V]) = es.getE(ek)
+
+  //def removeV[K, V](v: V)(implicit vType: VT[K, V]): Some[Graph[GS]] = Some(copy(vs.removeV(vType.key(v), es.removeEs)))
 }
 
 sealed abstract class Vertex {

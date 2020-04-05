@@ -3,15 +3,21 @@ package com.github.unclebob418.graph
 trait GraphSchema {
   type VT[K, V] <: VertexType[K, V]
   type ET <: EdgeType[VT]
+
+  //todo allow cycles if desired
+  //todo allow certain types of cycles only?
+  //todo composition of GraphSchemas?
 }
 
-sealed case class VertexKey[+K, +V0](key: K)
+//todo can K be invariant? should it be?
+sealed case class VertexKey[+K, +V](key: K)
 
 trait VertexType[K, V] {
+  //get a key given a value
   def key(v: V): VertexKey[K, V]
 }
 
-sealed case class EdgeKey[+K, +E0](key: K)
+sealed case class EdgeKey[K, +E](key: K)
 
 trait EdgeType[VT[_, _] <: VertexType[_, _]] {
   type K

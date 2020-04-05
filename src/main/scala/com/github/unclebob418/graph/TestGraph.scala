@@ -10,7 +10,6 @@ object AirRoutesSchema extends GraphSchema {
 
   sealed trait AirRoutesVertexTypes[K, V] extends VertexType[K, V]
   object AirRoutesVertexTypes {
-
     implicit case object Airports extends AirRoutesVertexTypes[Int, Airport] {
       override def key(v: Airport): VertexKey[Int, Airport] = VertexKey(v.id)
     }
@@ -79,13 +78,13 @@ object Test extends App {
   val syd      = Airport(1, "SYD", "YSSY", "Sydney Kingsford Smith")
   val mel      = Airport(2, "MEL", "YMML", "Melbourne International Airport")
   val aus      = Country(1, "AUS", "Australia")
-  val as       = Continent(1, "AS", "Australasia")
+  val as       = Continent(1, "OC", "Oceana")
   val route1   = Route(1, 500)
   val route2   = Route(2, 500)
   val contains = Contains(1)
 
-  val g = (
-    Some(Graph.empty(AirRoutesSchema))
+  val g =
+    (Graph.empty(AirRoutesSchema)
       flatMap (_.addV(syd))
       flatMap (_.addV(mel))
       flatMap (_.addV(aus))
@@ -95,8 +94,7 @@ object Test extends App {
       flatMap (_.addE(aus, contains, syd))
       flatMap (_.addE(aus, contains, mel))
       flatMap (_.addE(as, contains, syd))
-      flatMap (_.addE(as, contains, syd))
-  ).head
+      flatMap (_.addE(as, contains, syd))).head
 
   println("g.getVs(Airports)")
   println(g.getVs(Airports))
