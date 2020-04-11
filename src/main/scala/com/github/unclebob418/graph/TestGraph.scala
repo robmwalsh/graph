@@ -77,11 +77,11 @@ object Test extends App {
 
   val syd      = Airport(1, "SYD", "YSSY", "Sydney Kingsford Smith")
   val mel      = Airport(2, "MEL", "YMML", "Melbourne International Airport")
-  val aus      = Country(1, "AUS", "Australia")
-  val as       = Continent(1, "OC", "Oceana")
-  val route1   = Route(1, 500)
-  val route2   = Route(2, 500)
-  val contains = Contains(1)
+  val aus      = Country(3, "AUS", "Australia")
+  val as       = Continent(4, "OC", "Oceana")
+  val route1   = Route(5, 500)
+  val route2   = Route(6, 500)
+  val contains = Contains(7)
 
   val g =
     (Graph.empty(AirRoutesSchema)
@@ -96,14 +96,18 @@ object Test extends App {
       flatMap (_.addE(as, contains, syd))
       flatMap (_.addE(as, contains, syd))).head
 
+
+  println("g.getV(Airports.key(syd))")
+  val sydAirport = g.getV(Airports.key(syd))
+  println(sydAirport)
   println("g.getVs(Airports)")
-  println(g.getVs(Airports))
+  val airports = g.getVs(Airports)
+  println(airports)
   println("g.getVs(Countries)")
   println(g.getVs(Countries))
   println("g.getVs(Continents)")
   println(g.getVs(Continents))
 
-  println("g.es")
-  println(g.es)
-
+  println("g.eMap")
+  println(g.eMap)
 }
