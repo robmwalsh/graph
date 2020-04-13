@@ -9,6 +9,13 @@ trait GraphSchema {
   //todo composition of GraphSchemas?
 }
 
+/*object GraphSchema {
+  type Aux[VT[_, _] <: VertexType[K, V], ET <: EdgeType[VT], K, V] = GraphSchema {
+    type VT = VertexType[K, V]
+    type ET <: EdgeType[VT]
+  }
+}*/
+
 //todo can K be invariant? should it be?
 sealed case class VertexKey[+K, +V](key: K)
 //todo add type to key? sealed case class VertexKey[K, V, VT <: VertexType[K, V]](key: K)(implicit vType: VertexType[K, V])
@@ -22,11 +29,11 @@ trait VertexType[K, V] {
 
 sealed case class EdgeKey[K, +E](key: K)
 
-trait EdgeType[VT[_, _] <: VertexType[_, _]] {
+trait EdgeType[VTs[_, _] <: VertexType[_, _]] {
   type K
   type E
-  type In <: VT[_, _]
-  type Out <: VT[_, _]
+  type In <: VTs[_, _]
+  type Out <: VTs[_, _]
 
   def key(e: E): EdgeKey[K, E]
 }

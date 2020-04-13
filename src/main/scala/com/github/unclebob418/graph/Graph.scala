@@ -1,7 +1,6 @@
 package com.github.unclebob418.graph
 
-import com.github.unclebob418.graph.Graph._
-
+import com.github.unclebob418.graph.VTraversal._
 object Graph {
 
   def empty[GS <: GraphSchema](implicit gs0: GS): Option[Graph[GS]] =
@@ -22,6 +21,15 @@ sealed trait Graph[GS <: GraphSchema] { self =>
   val tMap: Map[Any, Map[Any, Any]] //[Type, Map[K, V]] // tmap, stores all verticies and edges indexed by type
 
   val gs: GS
+
+  def V[K, V](vType: VT[K, V]): VertexSource[K, V, GS] = VertexSource(self)(gs, vType)
+
+  def E[IK, IV, OK, OV, K0, E0](eType: ET {
+    type In  = VT[IK, IV]
+    type K   = K0
+    type E   = E0
+    type Out = VT[OK, OV]
+  }) = ???
 
   def addV[K, V](v: V)(implicit vType: VT[K, V]): Some[Graph[GS]] = {
     //todo validate
@@ -69,7 +77,8 @@ sealed trait Graph[GS <: GraphSchema] { self =>
           case Some(outV) =>
             Some(
               copy(
-                vMap0 = vMap + ((iVType, inVK)    -> inV.addOutE(edge, outVK, eType)) + ((oVType, outVK) -> outV.addInE(edge, inVK, eType)),
+                vMap0 = vMap + ((iVType, inVK) -> inV.addOutE(edge, outVK, eType)) + ((oVType, outVK) -> outV
+                  .addInE(edge, inVK, eType)),
                 eMap0 = eMap + (edgeKey -> edge),
                 tMap0 = tMap.get(eType) match {
                   case Some(subMap) =>
@@ -101,26 +110,13 @@ sealed trait Graph[GS <: GraphSchema] { self =>
     ???
   }
    */
-  def getV[K, V](vk: VertexKey[K, V])(implicit vType: VT[K, V]): Option[V] =
-    vMap.get((vType, vk)).asInstanceOf[Option[Vertex[K, V]]] match {
-      case Some(vertex) => Some(vertex.value)
-      case _            => None
-    }
+  def getV[K, V](vk: VertexKey[K, V])(implicit vType: VT[K, V]): Option[Vertex[K, V]] =
+    vMap.get((vType, vk)).asInstanceOf[Option[Vertex[K, V]]]
 
-  def getVs[K, V](vType: VT[K, V]): Option[Map[VertexKey[K, V], V]] =
-    tMap.get(vType).asInstanceOf[Option[Map[VertexKey[K, V], Vertex[K, V]]]] match {
-      case Some(map) => {
-        Some(map.view.mapValues(_.value).toMap)
-      }
-      case _         => {
-        None
-      }
-    }
-
+  def getVs[K, V](vType: VT[K, V]): Option[Map[VertexKey[K, V], Vertex[K, V]]] =
+    tMap.get(vType).asInstanceOf[Option[Map[VertexKey[K, V], Vertex[K, V]]]]
   /*
   def getE[K, V](ek: EdgeKey[K, V]) = es.getE(ek)*/
 
   //def removeV[K, V](v: V)(implicit vType: VT[K, V]): Some[Graph[GS]] = Some(copy(vs.removeV(vType.key(v), es.removeEs)))
 }
-
-
