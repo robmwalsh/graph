@@ -1,6 +1,6 @@
 package com.github.unclebob418.graph
 
-import com.github.unclebob418.graph.AirRoutesEdgeTypes.{ Contains, Route }
+import com.github.unclebob418.graph.AirRoutesEdgeTypes.{ Contains, Route, Routes }
 import com.github.unclebob418.graph.AirRoutesVertexTypes.{
   Airport,
   Airports,
@@ -40,7 +40,7 @@ object AirRoutesEdgeTypes {
   sealed case class Route(id: Int, distance: Int)
   sealed case class Contains(id: Int)
 
-  implicit case object Route extends AirRoutesEdgeTypes {
+  implicit case object Routes extends AirRoutesEdgeTypes {
     override type K   = Int
     override type E   = Route
     override type In  = AirRoutesVertexTypes[Int, Airport]
@@ -108,7 +108,8 @@ object Test extends App {
       flatMap (_.addE(as, contains, syd))
       flatMap (_.addE(as, contains, syd))).head
 
-  val x = g.V(Countries).has(_.desc == "Australia").outV(Airports).has(_.code == "SYD") //.outE(Route).has(_.distance > 200
+  val x = g.V(Countries).has(_.desc == "Australia").outV(Airports).has(_.code == "SYD")
+  //.outE(Routes).has(_.distance > 200
 
   println("g.getV(Airports.key(syd))")
   val sydAirport = g.getV(Airports.key(syd))
