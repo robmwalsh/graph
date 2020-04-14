@@ -81,7 +81,7 @@ object AirRoutesEdgeTypes {
 }
 
 object AirRoutesSchema extends GraphSchema {
-  override type VT[K, V] = AirRoutesVertexTypes[K, V]
+  override type VTs[K, V] = AirRoutesVertexTypes[K, V]
   override type ET       = AirRoutesEdgeTypes
 }
 

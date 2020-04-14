@@ -1,8 +1,14 @@
 package com.github.unclebob418.graph
 
+trait Schema[GS <: GraphSchema] {
+  val gs: GS
+  type ET       = gs.ET
+  type VTs[K, V] = gs.VTs[K, V]
+}
+
 trait GraphSchema {
-  type VT[K, V] <: VertexType[K, V]
-  type ET <: EdgeType[VT]
+  type VTs[K, V] <: VertexType[K, V]
+  type ET <: EdgeType[VTs]
 
   //todo allow cycles if desired
   //todo allow certain types of cycles only?
@@ -36,4 +42,13 @@ trait EdgeType[VTs[_, _] <: VertexType[_, _]] {
   type Out <: VTs[_, _]
 
   def key(e: E): EdgeKey[K, E]
+}
+object EdgeType {
+  //todo does this actaully help anywhere?
+  type Aux[IVT <: VertexType[IK, IV], K0, E0, OVT <: VertexType[OK, OV], IK, IV, OK, OV] = GraphSchema {
+    type In  = IVT
+    type K   = K0
+    type E   = E0
+    type Out = OVT
+  }
 }

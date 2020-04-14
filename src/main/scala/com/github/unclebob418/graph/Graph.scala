@@ -1,5 +1,6 @@
 package com.github.unclebob418.graph
 
+import com.github.unclebob418.graph.ETraversal.EdgeSource
 import com.github.unclebob418.graph.VTraversal._
 object Graph {
 
@@ -12,26 +13,21 @@ object Graph {
     })
 }
 
-sealed trait Graph[GS <: GraphSchema] { self =>
-  type ET       = gs.ET
-  type VT[K, V] = gs.VT[K, V]
-
+sealed trait Graph[GS <: GraphSchema] extends Schema[GS] { self =>
   val vMap: Map[Any, Any]           //[(Type, VK), VV] // vertex map, stores all verticies
   val eMap: Map[Any, Any]           //[(Type, EK), EV] // edge map, stores all edges
   val tMap: Map[Any, Map[Any, Any]] //[Type, Map[K, V]] // tmap, stores all verticies and edges indexed by type
 
-  val gs: GS
-
-  def V[K, V](vType: VT[K, V]): VertexSource[K, V, GS] = VertexSource(self)(gs, vType)
+  def V[K, V](vType: VTs[K, V]): VertexSource[K, V, GS] = VertexSource(self, vType)
 
   def E[IK, IV, OK, OV, K0, E0](eType: ET {
-    type In  = VT[IK, IV]
+    type In  = self.gs.VTs[IK, IV]
     type K   = K0
     type E   = E0
-    type Out = VT[OK, OV]
-  }) = ???
+    type Out = self.gs.VTs[OK, OV]
+  }) = EdgeSource(self)(eType)
 
-  def addV[K, V](v: V)(implicit vType: VT[K, V]): Some[Graph[GS]] = {
+  def addV[K, V](v: V)(implicit vType: VTs[K, V]): Some[Graph[GS]] = {
     //todo validate
     val vertexKey            = vType.key(v)
     val vertex: Vertex[K, V] = Vertex(vertexKey, v)
@@ -50,22 +46,22 @@ sealed trait Graph[GS <: GraphSchema] { self =>
 
   def addE[K, E0, IK, IV, OK, OV](inV: IV, e: E0, outV: OV)(
     implicit eType: ET {
-      type In  = VT[IK, IV]
-      type Out = VT[OK, OV]
+      type In  = VTs[IK, IV]
+      type Out = VTs[OK, OV]
       type E   = E0
     },
-    iVType: VT[IK, IV],
-    oVType: VT[OK, OV]
+    iVType: VTs[IK, IV],
+    oVType: VTs[OK, OV]
   ): Option[Graph[GS]] = addE(iVType.key(inV), e, oVType.key(outV))
 
   def addE[K, E0, IK, IV, OK, OV](inVK: VertexKey[IK, IV], edge: E0, outVK: VertexKey[OK, OV])(
     implicit eType: ET {
-      type In  = VT[IK, IV]
-      type Out = VT[OK, OV]
+      type In  = VTs[IK, IV]
+      type Out = VTs[OK, OV]
       type E   = E0
     },
-    iVType: VT[IK, IV],
-    oVType: VT[OK, OV]
+    iVType: VTs[IK, IV],
+    oVType: VTs[OK, OV]
   ): Option[Graph[GS]] = {
     //todo add to typemap
     val inVOpt  = vMap.get((iVType, inVK)).asInstanceOf[Option[Vertex[IV, IK]]]
@@ -95,7 +91,7 @@ sealed trait Graph[GS <: GraphSchema] { self =>
 
   }
 
-  def containsV[K, V](vk: VertexKey[K, V])(implicit vType: VT[K, V]): Boolean = vMap.contains((vType, vk))
+  def containsV[K, V](vk: VertexKey[K, V])(implicit vType: VTs[K, V]): Boolean = vMap.contains((vType, vk))
 
   def copy(vMap0: Map[Any, Any] = vMap, eMap0: Map[Any, Any] = eMap, tMap0: Map[Any, Map[Any, Any]] = tMap): Graph[GS] =
     new Graph[GS] {
@@ -110,10 +106,10 @@ sealed trait Graph[GS <: GraphSchema] { self =>
     ???
   }
    */
-  def getV[K, V](vk: VertexKey[K, V])(implicit vType: VT[K, V]): Option[Vertex[K, V]] =
+  def getV[K, V](vk: VertexKey[K, V])(implicit vType: VTs[K, V]): Option[Vertex[K, V]] =
     vMap.get((vType, vk)).asInstanceOf[Option[Vertex[K, V]]]
 
-  def getVs[K, V](vType: VT[K, V]): Option[Map[VertexKey[K, V], Vertex[K, V]]] =
+  def getVs[K, V](vType: VTs[K, V]): Option[Map[VertexKey[K, V], Vertex[K, V]]] =
     tMap.get(vType).asInstanceOf[Option[Map[VertexKey[K, V], Vertex[K, V]]]]
   /*
   def getE[K, V](ek: EdgeKey[K, V]) = es.getE(ek)*/
