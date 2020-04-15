@@ -1,9 +1,9 @@
 package com.github.unclebob418.graph
 
-
 sealed trait Traversal[GS <: GraphSchema] extends Schema[GS]
 
-//a traversal that ends at a vertex of type K, V
+//a traversal that ends at a vertex of type K0, V0
+//todo pass self along
 sealed trait VertexTraversal[K0, V0, GS <: GraphSchema] extends Traversal[GS] { self =>
 
   val vType: VertexType[K0, V0]
@@ -26,10 +26,11 @@ sealed trait VertexTraversal[K0, V0, GS <: GraphSchema] extends Traversal[GS] { 
 object VertexTraversal {
   sealed case class VertexSource[K, V, GS <: GraphSchema] private (graph: Graph[GS], vType: VertexType[K, V])
       extends VertexTraversal[K, V, GS] {
-    implicit val gs: GS = graph.gs
+    val gs: GS = graph.gs
   }
-  sealed case class VTraversal[K, V, GS <: GraphSchema] private(vType: VertexType[K, V], val gs: GS)
+  sealed case class VTraversal[K, V, GS <: GraphSchema] private (vType: VertexType[K, V], gs: GS)
       extends VertexTraversal[K, V, GS]
+
   sealed case class Has[K, V, GS <: GraphSchema](p: V => Boolean)(val vType: VertexType[K, V], val gs: GS)
       extends VertexTraversal[K, V, GS]
 }

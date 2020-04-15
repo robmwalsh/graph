@@ -79,8 +79,8 @@ object Test extends App {
       flatMap (_.addE(as, contains, syd))).head
 
 
-  val x = g.V(Countries)
-    //.outV(Airports)
+  val x = g.V(Continents)
+    .outV(Airports)
     .has(_.code == "SYD")
     .has(_.desc == "Sydney Kingsford Smith")
   //.outE(Routes).has(_.distance > 200
