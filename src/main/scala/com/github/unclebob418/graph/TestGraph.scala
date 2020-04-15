@@ -1,88 +1,58 @@
 package com.github.unclebob418.graph
 
-import com.github.unclebob418.graph.AirRoutesEdgeTypes.{ Contains, Route, Routes }
-import com.github.unclebob418.graph.AirRoutesVertexTypes.{
-  Airport,
-  Airports,
-  Continent,
-  Continents,
-  Countries,
-  Country
-}
+import com.github.unclebob418.graph.AirRoutesEdgeType._
+import com.github.unclebob418.graph.AirRoutesVertexType._
+import com.github.unclebob418.graph.AirRoutesConnectionType._
 
 //based on https://github.com/krlawrence/graph/tree/master/sample-data
 
-case object AVertextType extends VertexType[String, Int] {
-  override def key(v: Int): VertexKey[String, Int] = VertexKey(v.toString)
-}
-
-sealed trait AirRoutesVertexTypes[K, V] extends VertexType[K, V]
-object AirRoutesVertexTypes {
+sealed trait AirRoutesVertexType[VK, V] extends VertexType[VK, V]
+object AirRoutesVertexType {
   //vertices
   sealed case class Airport(id: Int, code: String, icao: String, desc: String)
   sealed case class Country(id: Int, code: String, desc: String)
   sealed case class Continent(id: Int, code: String, desc: String)
 
-  implicit case object Airports extends AirRoutesVertexTypes[Int, Airport] {
+  implicit case object Airports extends AirRoutesVertexType[Int, Airport] {
     override def key(v: Airport): VertexKey[Int, Airport] = VertexKey(v.id)
   }
-  implicit case object Countries extends AirRoutesVertexTypes[Int, Country] {
+  implicit case object Countries extends AirRoutesVertexType[Int, Country] {
     override def key(v: Country): VertexKey[Int, Country] = VertexKey(v.id)
   }
-  implicit case object Continents extends AirRoutesVertexTypes[Int, Continent] {
+  implicit case object Continents extends AirRoutesVertexType[Int, Continent] {
     override def key(v: Continent): VertexKey[Int, Continent] = VertexKey(v.id)
   }
 }
+sealed trait AirRoutesConnectionType[IK, IV, OK, OV] extends ConnectionType[IK, IV, OK, OV]
+object AirRoutesConnectionType {
+  case object AirportAirport   extends AirRoutesConnectionType[Int, Airport, Int, Airport]
+  case object ContinentAirport extends AirRoutesConnectionType[Int, Continent, Int, Airport]
+  case object CountryAirport   extends AirRoutesConnectionType[Int, Country, Int, Airport]
+}
 
-sealed trait AirRoutesEdgeTypes extends EdgeType[AirRoutesVertexTypes]
-object AirRoutesEdgeTypes {
+sealed trait AirRoutesEdgeType[IK, IV, EK, E, OK, OV] extends EdgeType[IK, IV, EK, E, OK, OV]
+object AirRoutesEdgeType {
   //edges
   sealed case class Route(id: Int, distance: Int)
   sealed case class Contains(id: Int)
 
-  implicit case object Routes extends AirRoutesEdgeTypes {
-    override type K   = Int
-    override type E   = Route
-    override type In  = AirRoutesVertexTypes[Int, Airport]
-    override type Out = AirRoutesVertexTypes[Int, Airport]
-
-    override def key(e: Route): EdgeKey[Int, Route] =
-      EdgeKey(e.id) //todo get rid of repetition? do we need option to be flexible?
+  implicit case object Routes extends AirRoutesEdgeType[Int, Airport, Int, Route, Int, Airport] {
+    override def key(e: Route): EdgeKey[Int, Route] = EdgeKey(e.id)
   }
 
-  implicit case object ContinentAirport extends AirRoutesEdgeTypes {
-    override type K   = Int
-    override type In  = AirRoutesVertexTypes[Int, Continent]
-    override type E   = Contains
-    override type Out = AirRoutesVertexTypes[Int, Airport]
-
-    override def key(e: Contains): EdgeKey[K, Contains] = EdgeKey(e.id) //todo get rid of repetition?
+  implicit case object ContinentAirport extends AirRoutesEdgeType[Int, Continent, Int, Contains, Int, Airport] {
+    override def key(e: Contains): EdgeKey[Int, Contains] = EdgeKey(e.id) //todo get rid of repetition?
   }
 
-  implicit case object CountryAirport extends AirRoutesEdgeTypes {
-    override type K   = Int
-    override type In  = AirRoutesVertexTypes[Int, Country]
-    override type E   = Contains
-    override type Out = AirRoutesVertexTypes[Int, Airport]
-
-    override def key(e: Contains): EdgeKey[K, Contains] = EdgeKey(e.id) //todo get rid of repetition?
-  }
-
-  /*todo try to get this to fail compliation;
-       only valid vertices should be allowed on an edge*/
-  implicit case object Invalid extends AirRoutesEdgeTypes {
-    override type K   = String
-    override type In  = AirRoutesVertexTypes[String, String]
-    override type E   = String
-    override type Out = AirRoutesVertexTypes[String, String]
-
-    override def key(e: String): EdgeKey[K, String] = EdgeKey(e)
+  implicit case object CountryAirport extends AirRoutesEdgeType[Int, Country, Int, Contains, Int, Airport] {
+    override def key(e: Contains): EdgeKey[Int, Contains] = EdgeKey(e.id) //todo get rid of repetition?
   }
 }
 
 object AirRoutesSchema extends GraphSchema {
-  override type VTs[K, V] = AirRoutesVertexTypes[K, V]
-  override type ET       = AirRoutesEdgeTypes
+  override type VTs[K, V]                  = AirRoutesVertexType[K, V]
+  override type CTs[IK, IV, OK, OV]        = AirRoutesConnectionType[IK, IV, OK, OV]
+  override type ETs[IK, IV, EK, E, OK, OV] = AirRoutesEdgeType[IK, IV, EK, E, OK, OV]
 }
 
 object Test extends App {
@@ -108,7 +78,11 @@ object Test extends App {
       flatMap (_.addE(as, contains, syd))
       flatMap (_.addE(as, contains, syd))).head
 
-  val x = g.V(Countries).has(_.desc == "Australia").outV(Airports).has(_.code == "SYD")
+
+  val x = g.V(Countries)
+    //.outV(Airports)
+    .has(_.code == "SYD")
+    .has(_.desc == "Sydney Kingsford Smith")
   //.outE(Routes).has(_.distance > 200
 
   println("g.getV(Airports.key(syd))")

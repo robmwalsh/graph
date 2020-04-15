@@ -1,54 +1,37 @@
 package com.github.unclebob418.graph
 
+//todo standardise naming and order of types here
 trait Schema[GS <: GraphSchema] {
   val gs: GS
-  type ET       = gs.ET
-  type VTs[K, V] = gs.VTs[K, V]
+  type VTs[VK, V]                 = gs.VTs[VK, V]
+  type CTs[IK, IV, OK, OV]        = gs.CTs[IK, IV, OK, OV]
+  type ETs[IK, IV, EK, E, OK, OV] = gs.ETs[IK, IV, EK, E, OK, OV]
 }
 
 trait GraphSchema {
-  type VTs[K, V] <: VertexType[K, V]
-  type ET <: EdgeType[VTs]
+  type VTs[VK, V] <: VertexType[VK, V]                               //vertex types
+  type CTs[IK, IV, OK, OV] <: ConnectionType[IK, IV, OK, OV]         //allowed connections
+  type ETs[IK, IV, EK, E, OK, OV] <: EdgeType[IK, IV, EK, E, OK, OV] //allowed edges
 
   //todo allow cycles if desired
   //todo allow certain types of cycles only?
-  //todo composition of GraphSchemas?
+  //todo composition of GraphSchemas (much easier now!)
 }
 
-/*object GraphSchema {
-  type Aux[VT[_, _] <: VertexType[K, V], ET <: EdgeType[VT], K, V] = GraphSchema {
-    type VT = VertexType[K, V]
-    type ET <: EdgeType[VT]
-  }
-}*/
-
-//todo can K be invariant? should it be?
 sealed case class VertexKey[+K, +V](key: K)
 //todo add type to key? sealed case class VertexKey[K, V, VT <: VertexType[K, V]](key: K)(implicit vType: VertexType[K, V])
 
-trait VertexType[K, V] {
-  //get a key given a value
-  //get a key given a value
-  def key(v: V): VertexKey[K, V]
-  //todo add type to key? def key[VT <: VertexType[K, V]](v: V)(implicit vType: VertexType[K, V])
-}
-
 sealed case class EdgeKey[K, +E](key: K)
 
-trait EdgeType[VTs[_, _] <: VertexType[_, _]] {
-  type K
-  type E
-  type In <: VTs[_, _]
-  type Out <: VTs[_, _]
-
-  def key(e: E): EdgeKey[K, E]
+trait VertexType[K, V] {
+  def key(v: V): VertexKey[K, V]
 }
-object EdgeType {
-  //todo does this actaully help anywhere?
-  type Aux[IVT <: VertexType[IK, IV], K0, E0, OVT <: VertexType[OK, OV], IK, IV, OK, OV] = GraphSchema {
-    type In  = IVT
-    type K   = K0
-    type E   = E0
-    type Out = OVT
-  }
+
+trait ConnectionType[IK, IV, OK, OV] {
+//  type IV = VertexType[IK, IV]
+//  type OV = VertexType[OK, OV]
+}
+
+trait EdgeType[IK, IV, EK, E, OK, OV] {
+  def key(e: E): EdgeKey[EK, E]
 }
