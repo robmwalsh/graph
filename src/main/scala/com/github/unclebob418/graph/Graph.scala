@@ -1,6 +1,6 @@
 package com.github.unclebob418.graph
 
-import com.github.unclebob418.graph.ETraversal.EdgeSource
+import com.github.unclebob418.graph.EdgeTraversal.EdgeSource
 import com.github.unclebob418.graph.VertexTraversal._
 object Graph {
 
