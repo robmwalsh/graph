@@ -48,7 +48,7 @@ object ETraversal {
     override val gs: GS = graph0.gs
   }
 
-  /*sealed case class Has[IK, IV, OK, OV, K0, E0, GS <: GraphSchema](p: E0 => Boolean)(val gs: GS, val eType: self.gs.ET {
+  sealed case class Has[IK, IV, OK, OV, K0, E0, GS <: GraphSchema](p: E0 => Boolean)(val gs: GS, val eType: self.gs.ET {
     type In  = self.gs.VT[IK, IV]
     type K   = K0
     type E   = E0

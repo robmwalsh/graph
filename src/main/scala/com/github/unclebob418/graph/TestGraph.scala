@@ -25,9 +25,9 @@ object AirRoutesVertexType {
 }
 sealed trait AirRoutesConnectionType[IK, IV, OK, OV] extends ConnectionType[IK, IV, OK, OV]
 object AirRoutesConnectionType {
-  case object AirportAirport   extends AirRoutesConnectionType[Int, Airport, Int, Airport]
-  case object ContinentAirport extends AirRoutesConnectionType[Int, Continent, Int, Airport]
-  case object CountryAirport   extends AirRoutesConnectionType[Int, Country, Int, Airport]
+  implicit case object AirportAirport   extends AirRoutesConnectionType[Int, Airport, Int, Airport]
+  implicit case object ContinentAirport extends AirRoutesConnectionType[Int, Continent, Int, Airport]
+  implicit case object CountryAirport   extends AirRoutesConnectionType[Int, Country, Int, Airport]
 }
 
 sealed trait AirRoutesEdgeType[IK, IV, EK, E, OK, OV] extends EdgeType[IK, IV, EK, E, OK, OV]
