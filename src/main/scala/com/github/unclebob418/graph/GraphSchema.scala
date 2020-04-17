@@ -1,5 +1,8 @@
 package com.github.unclebob418.graph
 
+import com.github.unclebob418.graph.Traversal.TraversalSource
+import com.github.unclebob418.graph.Traversal.TraversalSource.Anonymous
+
 //todo standardise naming and order of types here
 trait Schema[GS <: GraphSchema] {
   val gs: GS
@@ -8,11 +11,12 @@ trait Schema[GS <: GraphSchema] {
   type ETs[IK, IV, EK, E, OK, OV] = gs.ETs[IK, IV, EK, E, OK, OV]
 }
 
-trait GraphSchema {
+trait GraphSchema { self =>
   type VTs[VK, V] <: VertexType[VK, V]                               //vertex types
   type CTs[IK, IV, OK, OV] <: ConnectionType[IK, IV, OK, OV]         //allowed connections
   type ETs[IK, IV, EK, E, OK, OV] <: EdgeType[IK, IV, EK, E, OK, OV] //allowed edges
 
+  def t: TraversalSource[self.type] = Anonymous(self)
   //todo allow cycles if desired
   //todo allow certain types of cycles only?
   //todo composition of GraphSchemas (much easier now!)

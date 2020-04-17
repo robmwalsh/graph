@@ -1,9 +1,9 @@
 package com.github.unclebob418.graph
 
-import com.github.unclebob418.graph.EdgeTraversal.EdgeSource
-import com.github.unclebob418.graph.VertexTraversal._
-object Graph {
+import com.github.unclebob418.graph.Traversal.TraversalSource
+import com.github.unclebob418.graph.Traversal.TraversalSource.GraphTraversalSource
 
+object Graph {
   def empty[GS <: GraphSchema](implicit gs0: GS): Option[Graph[GS]] =
     Some(new Graph[GS] {
       val vMap = Map.empty[Any, Any]
@@ -18,10 +18,7 @@ sealed trait Graph[GS <: GraphSchema] extends Schema[GS] { self =>
   val eMap: Map[Any, Any]           //[(Type, EK), EV] // edge map, stores all edges
   val tMap: Map[Any, Map[Any, Any]] //[Type, Map[K, V]] // tmap, stores all verticies and edges indexed by type
 
-  def V[K, V](vType: VTs[K, V]): VertexSource[K, V, GS] = VertexSource(self, vType)
-
-  def E[IK, IV, OK, OV, K0, E0](eType: ETs[IK, IV, K0, E0, OK, OV]) = EdgeSource(self)(eType)
-
+  def t: TraversalSource[GS] = GraphTraversalSource(self)
   def addV[K, V](v: V)(implicit vType: VTs[K, V]): Some[Graph[GS]] = {
     //todo validate
     val vertexKey            = vType.key(v)

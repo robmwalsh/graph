@@ -35,5 +35,4 @@ object Vertex {
     key: VertexKey[K, V],
     value: V
   )(implicit vType: VertexType[K, V]): Vertex[K, V] = Vertex[K, V](key, value, Map.empty[Any, Set[(Any, Any)]], Map.empty[Any, Set[(Any, Any)]])
-
 }
