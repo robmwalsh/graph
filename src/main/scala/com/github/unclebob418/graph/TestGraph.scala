@@ -2,7 +2,7 @@ package com.github.unclebob418.graph
 
 import com.github.unclebob418.graph.AirRoutesEdgeType._
 import com.github.unclebob418.graph.AirRoutesVertexType._
-import com.github.unclebob418.graph.Traversal.TraversalSource.Anonymous
+import com.github.unclebob418.graph.traversal.Traversal.Source.Anonymous
 
 //based on https://github.com/krlawrence/graph/tree/master/sample-data
 
@@ -78,11 +78,17 @@ object Test extends App {
       flatMap (_.addE(as, contains, syd))
       flatMap (_.addE(as, contains, syd))).head
 
-  val x1 = g.t.V(Countries).has(_.desc == "Australia").outV(Airports).has(_.code == "SYD")
-    .outE(Routes).has(_.distance > 200)
-  val x2 = g.t.E(Routes).has(_.id == 1).outV
+  val x1 = g.t
+    .V(Countries)
+    .has(_.desc == "Australia")
+    .outV(Airports)
+    .has(_.code == "SYD")
+    .outE(Routes)
+    .has(_.distance > 200).interpret()
 
-  println(x1)
+  println( s"x1 = $x1")
+
+  val x2 = g.t.E(Routes).has(_.id == 1).outV
 
   println("g.getV(Airports.key(syd))")
   val sydAirport = g.getV(Airports.key(syd))
