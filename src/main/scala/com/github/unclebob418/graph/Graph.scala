@@ -42,6 +42,7 @@ sealed trait Graph[GS <: GraphSchema] extends Schema[GS] { self =>
     oVType: VTs[OK, OV]
   ): Option[Graph[GS]] = addE(iVType.key(inV), e, oVType.key(outV))
 
+  //todo refactor. this is terrible.
   def addE[K0, E0, IK, IV, OK, OV](inVK: VertexKey[IK, IV], edge: E0, outVK: VertexKey[OK, OV])(
     implicit eType: ETs[IK, IV, K0, E0, OK, OV],
     iVType: VTs[IK, IV],
@@ -51,10 +52,13 @@ sealed trait Graph[GS <: GraphSchema] extends Schema[GS] { self =>
     val inVOpt  = vMap.get((iVType, inVK)).asInstanceOf[Option[Vertex[IV, IK]]]
     val outVOpt = vMap.get(oVType, outVK).asInstanceOf[Option[Vertex[OV, OK]]]
     val edgeKey = eType.key(edge)
+
     inVOpt.flatMap(
       inV =>
         outVOpt.flatMap(
-          outV =>
+          outV => {
+            val inVUpd  = inV.addOutE(edge, outVK, eType)
+            val outVUpd = outV.addInE(edge, inVK, eType)
             Some(
               copy(
                 vMap0 = vMap + ((iVType, inVK) -> inV.addOutE(edge, outVK, eType)) + ((oVType, outVK) -> outV
@@ -67,7 +71,25 @@ sealed trait Graph[GS <: GraphSchema] extends Schema[GS] { self =>
                     tMap + (eType -> Map(edgeKey -> edge))
                 }
               )
+            ).flatMap(
+              eAdded =>
+                Some(eAdded.copy(tMap0 = eAdded.tMap.get(iVType) match {
+                  case Some(subMap) =>
+                    tMap + (iVType -> (subMap + (inVK -> inVUpd)))
+                  case None =>
+                    tMap + (iVType -> Map(inVK -> inVUpd))
+                }))
+                  .flatMap(
+                    iVAdded =>
+                      Some(iVAdded.copy(tMap0 = iVAdded.tMap.get(oVType) match {
+                        case Some(subMap) =>
+                          tMap + (oVType -> (subMap + (outVK -> outVUpd)))
+                        case None =>
+                          tMap + (oVType -> Map(outVK -> outVUpd))
+                      }))
+                  )
             )
+          }
         )
     )
   }
