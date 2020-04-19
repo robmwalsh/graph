@@ -1,6 +1,6 @@
 package com.github.unclebob418.graph.traversal
 
-import com.github.unclebob418.graph.traversal.interpreter.{DescriptionInterpreter, TraversalInterpreter}
+import com.github.unclebob418.graph.traversal.interpreter.{ DescriptionInterpreter, TraversalInterpreter }
 import com.github.unclebob418.graph._
 import com.github.unclebob418.graph.traversal.Traversal.Step.EdgeTraversal.ETraversal
 import com.github.unclebob418.graph.traversal.Traversal.Step.VertexTraversal
@@ -58,6 +58,8 @@ object Traversal {
     }
 
     object VertexTraversal {
+      sealed case class VSource[K, V, GS <: GraphSchema] private (vType: VertexType[K, V], val tail: Traversal[GS])
+          extends VertexTraversal[K, V, GS]
 
       sealed case class VTraversal[K, V, GS <: GraphSchema] private (vType: VertexType[K, V], val tail: Traversal[GS])
           extends VertexTraversal[K, V, GS]
@@ -88,16 +90,22 @@ object Traversal {
 
     object EdgeTraversal {
 
-      sealed case class Has[IK, IV, OK, OV, K0, E0, GS <: GraphSchema] private (
-        p: E0 => Boolean,
+      sealed case class ESource[IK, IV, OK, OV, K0, E0, GS <: GraphSchema] private (
         eType: EdgeType[IK, IV, K0, E0, OK, OV],
-        tail: Traversal[GS]
+        val tail: Traversal[GS]
       ) extends EdgeTraversal[IK, IV, OK, OV, K0, E0, GS]
 
       sealed case class ETraversal[IK, IV, OK, OV, K0, E0, GS <: GraphSchema] private (
         eType: EdgeType[IK, IV, K0, E0, OK, OV],
         val tail: Traversal[GS]
       ) extends EdgeTraversal[IK, IV, OK, OV, K0, E0, GS]
+
+      sealed case class Has[IK, IV, OK, OV, K0, E0, GS <: GraphSchema] private (
+        p: E0 => Boolean,
+        eType: EdgeType[IK, IV, K0, E0, OK, OV],
+        tail: Traversal[GS]
+      ) extends EdgeTraversal[IK, IV, OK, OV, K0, E0, GS]
+
     }
   }
 }

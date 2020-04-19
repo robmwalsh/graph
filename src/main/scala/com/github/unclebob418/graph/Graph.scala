@@ -108,11 +108,19 @@ sealed trait Graph[GS <: GraphSchema] extends Schema[GS] { self =>
     ???
   }
    */
+
+  //todo make private
   def getV[K, V](vk: VertexKey[K, V])(implicit vType: VTs[K, V]): Option[Vertex[K, V]] =
     vMap.get((vType, vk)).asInstanceOf[Option[Vertex[K, V]]]
 
+  //todo make private
   def getVs[K, V](vType: VTs[K, V]): Option[Map[VertexKey[K, V], Vertex[K, V]]] =
     tMap.get(vType).asInstanceOf[Option[Map[VertexKey[K, V], Vertex[K, V]]]]
+
+  //todo make private
+  def getEs[IK, IV, EK, E, OK, OV](eType: ETs[IK, IV, EK, E, OK, OV]): Option[Map[EdgeKey[EK, E], Vertex[EK, E]]] =
+    tMap.get(eType).asInstanceOf[Option[Map[EdgeKey[EK, E], Vertex[EK, E]]]]
+
   /*
   def getE[K, V](ek: EdgeKey[K, V]) = es.getE(ek)*/
 

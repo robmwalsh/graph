@@ -13,7 +13,7 @@ object AirRoutesVertexType {
   sealed case class Country(id: Int, code: String, desc: String)
   sealed case class Continent(id: Int, code: String, desc: String)
 
-  implicit case object Airports extends AirRoutesVertexType[Int, Airport] {
+  implicit case object Airports extends AirRoutesVertexType[Int, Airport] { self =>
     override def key(v: Airport): VertexKey[Int, Airport] = VertexKey(v.id)
   }
   implicit case object Countries extends AirRoutesVertexType[Int, Country] {
@@ -84,23 +84,11 @@ object Test extends App {
     .outV(Airports)
     .has(_.code == "SYD")
     .outE(Routes)
-    .has(_.distance > 200).interpret()
+    .has(_.distance > 200)
+    .interpret()
 
-  println( s"x1 = $x1")
+  val x2 = g.t.E(Routes).has(_.id == 1).outV.interpret()
 
-  val x2 = g.t.E(Routes).has(_.id == 1).outV
-
-  println("g.getV(Airports.key(syd))")
-  val sydAirport = g.getV(Airports.key(syd))
-  println(sydAirport)
-  println("g.getVs(Airports)")
-  val airports = g.getVs(Airports)
-  println(airports)
-  println("g.getVs(Countries)")
-  println(g.getVs(Countries))
-  println("g.getVs(Continents)")
-  println(g.getVs(Continents))
-
-  println("g.eMap")
-  println(g.eMap)
+  println(s"x1 = $x1")
+  println(s"x2 = $x2")
 }

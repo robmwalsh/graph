@@ -14,16 +14,20 @@ object DescriptionInterpreter extends TraversalInterpreter[List[String]] {
       case source: Traversal.Source[_] =>
         source match {
           case Source.Anonymous(_) =>
-            List("Anonymous Source")
+            "Anonymous Source" :: Nil
           case Source.GraphTraversalSource(graph) =>
-            List(s"GraphSource")
+            "GraphSource" :: Nil
         }
       case step: Traversal.Step[_] =>
         step match {
+          case VertexTraversal.VSource(vType, tail) =>
+            s"$vType vertex source" :: go(tail)
           case VertexTraversal.VTraversal(vType, tail) =>
             s"$vType vertex step" :: go(tail)
           case VertexTraversal.Has(p, vType, tail) =>
             s"$vType has vertex step" :: go(tail)
+          case EdgeTraversal.ESource(eType, tail) =>
+            s"$eType edge source" :: go(tail)
           case EdgeTraversal.ETraversal(eType, tail) =>
             s"$eType edge step" :: go(tail)
           case EdgeTraversal.Has(p, eType, tail) =>
