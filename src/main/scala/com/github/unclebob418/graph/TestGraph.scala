@@ -3,6 +3,7 @@ package com.github.unclebob418.graph
 import com.github.unclebob418.graph.AirRoutesEdgeType._
 import com.github.unclebob418.graph.AirRoutesVertexType._
 import com.github.unclebob418.graph.traversal.Traversal.Source.Anonymous
+import com.github.unclebob418.graph.traversal.interpreter.DescriptionInterpreter
 
 //based on https://github.com/krlawrence/graph/tree/master/sample-data
 
@@ -85,9 +86,13 @@ object Test extends App {
     .has(_.code == "SYD")
     .outE(Routes)
     .has(_.distance > 200)
-    .interpret()
+    .interpret(DescriptionInterpreter)
 
-  val x2 = g.t.E(Routes).has(_.id == 1).outV.interpret()
+  val x2 = g.t
+    .E(Routes)
+    .has(_.id == 1)
+    .outV
+    .interpret(DescriptionInterpreter)
 
   println(s"x1 = $x1")
   println(s"x2 = $x2")

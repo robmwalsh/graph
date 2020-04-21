@@ -31,7 +31,7 @@ object Traversal {
     val tail: Traversal[GS]
     val gs: GS = tail.gs
 
-    def interpret[A](i: TraversalInterpreter[A] = DescriptionInterpreter): A = i.interpret(self)
+    def interpret[A](i: TraversalInterpreter[A]): A = i.interpret(self)
   }
   object Step {
 
