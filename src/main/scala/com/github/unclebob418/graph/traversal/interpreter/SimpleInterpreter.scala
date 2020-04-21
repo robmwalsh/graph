@@ -5,13 +5,17 @@ import com.github.unclebob418.graph.traversal.Traversal
 import com.github.unclebob418.graph.traversal.Traversal.Source
 import com.github.unclebob418.graph.traversal.Traversal.Step.{ EdgeTraversal, VertexTraversal }
 
-object DescriptionInterpreter extends TraversalInterpreter[List[String]] {
+object SimpleInterpreter extends TraversalInterpreter[List[String]] {
 
   def interpret[GS <: GraphSchema](traversal: Traversal[GS]): List[String] = ???
 
-  def go[VK, V, EK, E, IK, IV, OK, OV, GS <: GraphSchema](
+  def go[VK, V, EK, E, IK, IV, OK, OV, VK1, V1, EK1, E1, IK1, IV1, OK1, OV1, GS <: GraphSchema](
     traversal: Traversal[GS],
-    f: (List[Either[Vertex[VK, V], Edge[EK, E, IK, IV, OK, OV]]])
+    f: (
+      List[Either[Vertex[VK, V], Edge[EK, E, IK, IV, OK, OV]]] => List[
+        Either[Vertex[VK1, V1], Edge[EK1, E1, IK1, IV1, OK1, OV1]]
+      ]
+    )
   ): List[String] =
     traversal match {
       case source: Traversal.Source[_] =>

@@ -31,10 +31,7 @@ trait VertexType[K, V] {
   def key(v: V): VertexKey[K, V]
 }
 
-trait ConnectionType[IK, IV, OK, OV] {
-//  type IV = VertexType[IK, IV]
-//  type OV = VertexType[OK, OV]
-}
+trait ConnectionType[IK, IV, OK, OV]
 
 trait EdgeType[IK, IV, EK, E, OK, OV] {
   def key(e: E): EdgeKey[EK, E]
