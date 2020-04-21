@@ -5,7 +5,7 @@ import com.github.unclebob418.graph.traversal.Traversal.Step.{ EdgeTraversal, Ve
 import com.github.unclebob418.graph.GraphSchema
 import com.github.unclebob418.graph.traversal.Traversal
 
-object DescriptionInterpreter extends TraversalInterpreter[List[String]] {
+object DescriptionInterpreter  {
 
   def interpret[GS <: GraphSchema](traversal: Traversal[GS]): List[String] = go(traversal).reverse
 

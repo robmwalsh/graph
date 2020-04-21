@@ -5,32 +5,25 @@ import com.github.unclebob418.graph.traversal.Traversal
 import com.github.unclebob418.graph.traversal.Traversal.Source
 import com.github.unclebob418.graph.traversal.Traversal.Step.{ EdgeTraversal, VertexTraversal }
 
-object SimpleInterpreter extends TraversalInterpreter[List[String]] {
+object SimpleInterpreter {
 
-  def interpret[GS <: GraphSchema](traversal: Traversal[GS]): List[String] = ???
+  def interpret[E, V, GS <: GraphSchema](traversal: Traversal[E, V, GS]): Either[List[E], List[V]] = ???
 
-  def go[VK, V, EK, E, IK, IV, OK, OV, VK1, V1, EK1, E1, IK1, IV1, OK1, OV1, GS <: GraphSchema](
-    traversal: Traversal[GS],
-    f: (
-      List[Either[Vertex[VK, V], Edge[EK, E, IK, IV, OK, OV]]] => List[
-        Either[Vertex[VK1, V1], Edge[EK1, E1, IK1, IV1, OK1, OV1]]
-      ]
-    )
-  ): List[String] =
+  def go[E, V, GS <: GraphSchema](traversal: Traversal[E, V, GS]): Either[List[E], List[V]] =
     traversal match {
-      case source: Traversal.Source[_] =>
+      case source: Traversal.Source[GS] =>
         source match {
-          case Source.Anonymous(_)                => ???
-          case Source.GraphTraversalSource(graph) => ???
+          case Source.GraphTraversalSource(graph) => Left(List.empty)
         }
-      case step: Traversal.Step[_] =>
+      case step: Traversal.Step[E, V, GS] =>
         step match {
-          case VertexTraversal.VSource(vType, tail)    => ???
-          case VertexTraversal.VTraversal(vType, tail) => ???
-          case VertexTraversal.Has(p, vType, tail)     => ???
-          case EdgeTraversal.ESource(eType, tail)      => ???
-          case EdgeTraversal.ETraversal(eType, tail)   => ???
-          case EdgeTraversal.Has(p, eType, tail)       => ???
+          case t: VertexTraversal.VSource[k, V, GS]                => val x = Right(t.tail.graph.getVs[k,V](t.vType))
+          case t: VertexTraversal.VTraversal[k, V, GS]             => ???
+          case t: VertexTraversal.Has[k, V, GS]                    => ???
+          /*case t: EdgeTraversal.ESource[ik, iv, ok, ov, ik, e, GS] =>
+          case EdgeTraversal.ETraversal(eType, tail)               => ???
+          case EdgeTraversal.Has(p, eType, tail)                   => ???*/
+          case _ => ???
         }
     }
 }
