@@ -1,33 +1,46 @@
 package com.github.unclebob418.graph.traversal.interpreter
 
-import com.github.unclebob418.graph.{ Edge, GraphSchema, Vertex, VertexType }
+import com.github.unclebob418.graph.{ Edge, EdgeKey, GraphSchema, Vertex, VertexKey, VertexType }
 import com.github.unclebob418.graph.traversal.Traversal
 import com.github.unclebob418.graph.traversal.Traversal.Source
 import com.github.unclebob418.graph.traversal.Traversal.Step.{ EdgeTraversal, VertexTraversal }
 
 object SimpleInterpreter {
 
-  def interpret[VK, V, EK, E, GS <: GraphSchema](traversal: Traversal[VK, V, EK, E, GS]): Either[List[E], List[V]] = ???
+  def interpret[VK, V, IK, IV, EK, E, OK, OV, GS <: GraphSchema](
+    traversal: Traversal[VK, V, IK, IV, EK, E, OK, OV, GS]
+  ): Either[List[V], List[E]] =
+    ???
 
-  def go[EK, E, VK, V, GS <: GraphSchema](
-    traversal: Traversal[VK, V, EK, E, GS]
-  )(result: Either[List[E], List[V]]): Either[List[E], List[V]] =
+  def go[VK, V, IK, IV, EK, E, OK, OV, GS <: GraphSchema](
+    traversal: Traversal[VK, V, IK, IV, EK, E, OK, OV, GS]
+  )(
+    result: Either[List[Vertex[VK, V]], List[Edge[IK, IV, EK, E, OK, OV]]]
+  ): Either[List[Vertex[VK, V]], List[Edge[IK, IV, EK, E, OK, OV]]] =
     traversal match {
       case source: Traversal.Source[GS] =>
         source match {
           case t: Source.GraphTraversalSource[_] => Left(List.empty)
         }
-      case step: Traversal.Step[VK, V, EK, E, GS] =>
+      case step: Traversal.Step[VK, V, IK, IV, EK, E, OK, OV, GS] =>
         step match {
           case t: VertexTraversal.VSource[VK, V, GS] =>
-            val x = t.tail.graph.getVs[VK, V](t.vType).getOrElse()
-
+            val res =
+              t.tail.graph
+                .getVs[VK, V](t.vType)
+                .values
+                .toList
+            Left(res)
           case t: VertexTraversal.VTraversal[VK, V, GS] => ???
           case t: VertexTraversal.Has[VK, V, GS]        => ???
-          case t: EdgeTraversal.ESource[ik, iv, EK, E, ok, ov, GS] =>
-            val x = t.tail.graph.getEs[ik, iv, EK, E, ok, ov](t.eType)
-          case t: EdgeTraversal.ETraversal[ik, iv, EK, E, ok, ov, GS] => ???
-          case t: EdgeTraversal.Has[ik, iv, ek, E, ok, ov, GS]        => ???
+          case t: EdgeTraversal.ESource[IK, IV, EK, E, OK, OV, GS] =>
+            val res = t.tail.graph
+              .getEs[IK, IV, EK, E, OK, OV](t.eType)
+              .values
+              .toList
+            Right(res)
+          case t: EdgeTraversal.ETraversal[IK, IV, EK, E, OK, OV, GS] => ???
+          case t: EdgeTraversal.Has[IK, IV, EK, E, OK, OV, GS]        => ???
         }
     }
 }

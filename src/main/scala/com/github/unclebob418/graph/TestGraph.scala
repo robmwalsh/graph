@@ -2,7 +2,7 @@ package com.github.unclebob418.graph
 
 import com.github.unclebob418.graph.AirRoutesEdgeType._
 import com.github.unclebob418.graph.AirRoutesVertexType._
-import com.github.unclebob418.graph.traversal.interpreter.DescriptionInterpreter
+import com.github.unclebob418.graph.traversal.interpreter.{DescriptionInterpreter, SimpleInterpreter}
 
 //based on https://github.com/krlawrence/graph/tree/master/sample-data
 
@@ -78,14 +78,15 @@ object Test extends App {
       flatMap (_.addE(as, contains, syd))
       flatMap (_.addE(as, contains, syd))).head
 
-  val x1 = g.t
+  val t1 = g.t
     .V(Countries)
     .has(_.desc == "Australia")
     .outV(Airports)
     .has(_.code == "SYD")
     .outE(Routes)
     .has(_.distance > 200)
-    //.interpret(DescriptionInterpreter)
+
+   val r1: Either[List[Nothing], List[Route]] =  SimpleInterpreter.interpret(t1)
 
   val x2 = g.t
     .E(Routes)
@@ -93,6 +94,6 @@ object Test extends App {
     .outV
     //.interpret(DescriptionInterpreter)
 
-  println(s"x1 = $x1")
+  println(s"t1 = $t1")
   println(s"x2 = $x2")
 }

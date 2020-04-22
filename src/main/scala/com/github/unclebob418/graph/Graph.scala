@@ -110,17 +110,25 @@ sealed trait Graph[GS <: GraphSchema] extends Schema[GS] { self =>
    */
 
   //todo make private
-  private[graph] def getV[K, V](vk: VertexKey[K, V])(implicit vType: VTs[K, V]): Option[Vertex[K, V]] =
-    vMap.get((vType, vk)).asInstanceOf[Option[Vertex[K, V]]]
+  private[graph] def getV[VK, V](vk: VertexKey[VK, V])(implicit vType: VTs[VK, V]): Option[Vertex[VK, V]] =
+    vMap.get((vType, vk)).asInstanceOf[Option[Vertex[VK, V]]]
 
   //todo make private
-  private[graph] def getVs[K, V](vType: VertexType[K, V]): Option[Map[VertexKey[K, V], Vertex[K, V]]] =
-    tMap.get(vType).asInstanceOf[Option[Map[VertexKey[K, V], Vertex[K, V]]]]
+  private[graph] def getVs[VK, V](vType: VertexType[VK, V]): Map[VertexKey[VK, V], Vertex[VK, V]] =
+    tMap
+      .get(vType)
+      .asInstanceOf[Option[Map[VertexKey[VK, V], Vertex[VK, V]]]]
+      .getOrElse(Map.empty[VertexKey[VK, V], Vertex[VK, V]])
 
   //todo make private
-  private[graph] def getEs[IK, IV, EK, E, OK, OV](eType: EdgeType[IK, IV, EK, E, OK, OV]): Option[Map[EdgeKey[EK, E], Vertex[EK, E]]] =
-    tMap.get(eType).asInstanceOf[Option[Map[EdgeKey[EK, E], Vertex[EK, E]]]]
-0
+  private[graph] def getEs[IK, IV, EK, E, OK, OV](
+    eType: EdgeType[IK, IV, EK, E, OK, OV]
+  ): Map[EdgeKey[EK, E], Edge[IK, IV, EK, E, OK, OV]] =
+    tMap
+      .get(eType)
+      .asInstanceOf[Option[Map[EdgeKey[EK, E], Edge[IK, IV, EK, E, OK, OV]]]]
+      .getOrElse(Map.empty[EdgeKey[EK, E], Edge[IK, IV, EK, E, OK, OV]])
+
   /*
   def getE[K, V](ek: EdgeKey[K, V]) = es.getE(ek)*/
 
