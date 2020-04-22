@@ -6,14 +6,14 @@ import com.github.unclebob418.graph.traversal.Traversal.Step.EdgeTraversal.ETrav
 import com.github.unclebob418.graph.traversal.Traversal.Step.VertexTraversal
 import com.github.unclebob418.graph.traversal.Traversal.Step.VertexTraversal.{ VSource, VTraversal }
 
-sealed trait Traversal[+E, +V, GS <: GraphSchema] extends Schema[GS]
+sealed trait Traversal[+VK, +V, +EK, +E, GS <: GraphSchema] extends Schema[GS]
 object Traversal {
 
   /**
    * The source of a traversal of a Graph[GS] (Empty traversal)
    */
-  trait Source[GS <: GraphSchema] extends Traversal[Nothing, Nothing, GS] { self =>
-    def V[K, V](vType: VTs[K, V]): VertexTraversal[K, V, GS] =
+  trait Source[GS <: GraphSchema] extends Traversal[Nothing, Nothing, Nothing, Nothing, GS] { self =>
+    def V[VK, V](vType: VTs[VK, V]): VertexTraversal[VK, V, GS] =
       VTraversal(vType, self)
 
     def E[IK, IV, EK, E, OK, OV](eType: ETs[IK, IV, EK, E, OK, OV]): ETraversal[IK, IV, EK, E, OK, OV, GS] =
@@ -25,10 +25,12 @@ object Traversal {
       val gs: GS = graph.gs
     }
   }
-  sealed trait Step[+E, +V, GS <: GraphSchema] extends Traversal[E, V, GS] { self =>
-    type TailE
+  sealed trait Step[+VK, +V, +EK, +E, GS <: GraphSchema] extends Traversal[VK, V, EK, E, GS] { self =>
+    type TailVK
     type TailV
-    val tail: Traversal[TailE, TailV, GS]
+    type TailEK
+    type TailE
+    val tail: Traversal[TailVK, TailV, TailEK, TailE, GS]
     val gs: GS = tail.gs
 
     //def interpret[A](i: TraversalInterpreter[A]): A = i.interpret(self)
@@ -39,7 +41,7 @@ object Traversal {
      * a traversal that ends at a VertexType[VK, V]
      * @tparam GS the graph schema
      */
-    sealed trait VertexTraversal[VK, V, GS <: GraphSchema] extends Step[Nothing, V, GS] { self =>
+    sealed trait VertexTraversal[VK, V, GS <: GraphSchema] extends Step[VK, V, Nothing, Nothing, GS] { self =>
 
       val vType: VertexType[VK, V]
 
@@ -58,38 +60,44 @@ object Traversal {
     }
 
     object VertexTraversal {
-      sealed trait VSource[K, V, GS <: GraphSchema] extends VertexTraversal[K, V, GS] {
+      sealed trait VSource[VK, V, GS <: GraphSchema] extends VertexTraversal[VK, V, GS] {
         override val tail: GraphTraversalSource[GS]
-        override type TailE = Nothing
-        override type TailV = Nothing
+        type TailVK = Nothing
+        type TailV  = Nothing
+        type TailEK = Nothing
+        type TailE  = Nothing
       }
       object VSource {
-        def apply[TailE1, TailV1, K, V, GS <: GraphSchema](
-          vType0: VertexType[K, V],
+        def apply[VK, V, GS <: GraphSchema](
+          vType0: VertexType[VK, V],
           tail1: GraphTraversalSource[GS]
-        ): VSource[K, V, GS] = new VSource[K, V, GS] {
-          val vType = vType0
-          val tail  = tail1: GraphTraversalSource[GS]
+        ): VSource[VK, V, GS] = new VSource[VK, V, GS] {
+          val vType: VertexType[VK, V]       = vType0
+          val tail: GraphTraversalSource[GS] = tail1: GraphTraversalSource[GS]
         }
       }
 
-      sealed trait VTraversal[K, V, GS <: GraphSchema] extends VertexTraversal[K, V, GS]
+      sealed trait VTraversal[VK, V, GS <: GraphSchema] extends VertexTraversal[VK, V, GS]
       object VTraversal {
-        def apply[TailE1, TailV1, K, V, GS <: GraphSchema](
+        def apply[TailVK0, TailV0, TailEK0, TailE0, K, V, GS <: GraphSchema](
           vType0: VertexType[K, V],
-          tail1: Traversal[TailE1, TailV1, GS]
+          tail1: Traversal[TailVK0, TailV0, TailEK0, TailE0, GS]
         ): VTraversal[K, V, GS] = new VTraversal[K, V, GS] {
           val vType = vType0
-          override type TailE = TailE1
-          override type TailV = TailV1
+          override type TailVK = TailVK0
+          override type TailV  = TailV0
+          override type TailEK = TailEK0
+          override type TailE  = TailE0
           val tail = tail1
         }
       }
 
-      sealed trait Has[K, V, GS <: GraphSchema] extends VertexTraversal[K, V, GS] {
-        override type TailV = V
-        override type TailE = Nothing
-        override val tail: VertexTraversal[K, V, GS]
+      sealed trait Has[VK, V, GS <: GraphSchema] extends VertexTraversal[VK, V, GS] {
+        override type TailVK = VK
+        override type TailV  = V
+        override type TailEK = Nothing
+        override type TailE  = Nothing
+        override val tail: VertexTraversal[VK, V, GS]
         val p: V => Boolean
 
       }
@@ -108,7 +116,8 @@ object Traversal {
      * A traversal of a Graph[GS] that ends at an `EdgeType[IK, IV, VK, E, OK, OV]`
      * @tparam GS the graph schema
      */
-    sealed trait EdgeTraversal[IK, IV, EK, E, OK, OV, GS <: GraphSchema] extends Step[E, Nothing, GS] { self =>
+    sealed trait EdgeTraversal[IK, IV, EK, E, OK, OV, GS <: GraphSchema] extends Step[Nothing, Nothing, EK, E, GS] {
+      self =>
       val eType: EdgeType[IK, IV, EK, E, OK, OV]
 
       def has(p: E => Boolean): EdgeTraversal.Has[IK, IV, EK, E, OK, OV, GS] =
@@ -125,8 +134,10 @@ object Traversal {
 
       sealed trait ESource[IK, IV, EK, E, OK, OV, GS <: GraphSchema] extends EdgeTraversal[IK, IV, EK, E, OK, OV, GS] {
         override val tail: GraphTraversalSource[GS]
-        override type TailE = Nothing
-        override type TailV = Nothing
+        type TailVK = Nothing
+        type TailV  = Nothing
+        type TailEK = Nothing
+        type TailE  = Nothing
       }
       object ESource {
         def apply[IK, IV, EK, E, OK, OV, GS <: GraphSchema](
@@ -135,26 +146,30 @@ object Traversal {
         ): ESource[IK, IV, EK, E, OK, OV, GS] =
           new ESource[IK, IV, EK, E, OK, OV, GS] {
             override val tail: GraphTraversalSource[GS]         = gts
-            override val eType: EdgeType[IK, IV,  EK, E, OK, OV] = eType0
+            override val eType: EdgeType[IK, IV, EK, E, OK, OV] = eType0
           }
       }
 
       sealed trait ETraversal[IK, IV, EK, E, OK, OV, GS <: GraphSchema] extends EdgeTraversal[IK, IV, EK, E, OK, OV, GS]
       object ETraversal {
-        def apply[TailE1, TailV1, IK, IV, EK, E, OK, OV, GS <: GraphSchema](
+        def apply[TailVK0, TailV0, TailEK0, TailE0, IK, IV, EK, E, OK, OV, GS <: GraphSchema](
           eType0: EdgeType[IK, IV, EK, E, OK, OV],
-          tail0: Traversal[TailE1, TailV1, GS]
+          tail0: Traversal[TailVK0, TailV0, TailEK0, TailE0, GS]
         ): ETraversal[IK, IV, EK, E, OK, OV, GS] = new ETraversal[IK, IV, EK, E, OK, OV, GS] {
           override val eType: EdgeType[IK, IV, EK, E, OK, OV] = eType0
-          override type TailE = TailE1
-          override type TailV = TailV1
-          override val tail: Traversal[TailE1, TailV1, GS] = tail0
+          override type TailVK = TailVK0
+          override type TailV  = TailV0
+          override type TailEK = TailEK0
+          override type TailE  = TailE0
+          override val tail: Traversal[TailVK0, TailV0, TailEK0, TailE0, GS] = tail0
         }
       }
 
       sealed trait Has[IK, IV, EK, E, OK, OV, GS <: GraphSchema] extends EdgeTraversal[IK, IV, EK, E, OK, OV, GS] {
-        override type TailV = Nothing
-        override type TailE = E
+        override type TailVK = Nothing
+        override type TailV  = Nothing
+        override type TailEK = EK
+        override type TailE  = E
         override val tail: EdgeTraversal[IK, IV, EK, E, OK, OV, GS]
         val p: E => Boolean
       }

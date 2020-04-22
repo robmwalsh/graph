@@ -7,7 +7,7 @@ import com.github.unclebob418.graph.traversal.Traversal
 
 object DescriptionInterpreter  {
 
-  def interpret[GS <: GraphSchema](traversal: Traversal[GS]): List[String] = go(traversal).reverse
+  /*def interpret[GS <: GraphSchema](traversal: Traversal[GS]): List[String] = go(traversal).reverse
 
   def go[GS <: GraphSchema](traversal: Traversal[GS]): List[String] =
     traversal match {
@@ -33,5 +33,5 @@ object DescriptionInterpreter  {
           case EdgeTraversal.Has(p, eType, tail) =>
             s"$eType has edge step" :: go(tail)
         }
-    }
+    }*/
 }

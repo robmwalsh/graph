@@ -85,13 +85,13 @@ object Test extends App {
     .has(_.code == "SYD")
     .outE(Routes)
     .has(_.distance > 200)
-    .interpret(DescriptionInterpreter)
+    //.interpret(DescriptionInterpreter)
 
   val x2 = g.t
     .E(Routes)
     .has(_.id == 1)
     .outV
-    .interpret(DescriptionInterpreter)
+    //.interpret(DescriptionInterpreter)
 
   println(s"x1 = $x1")
   println(s"x2 = $x2")
