@@ -120,7 +120,7 @@ sealed trait Graph[GS <: GraphSchema] extends Schema[GS] { self =>
   //todo make private
   def getEs[IK, IV, EK, E, OK, OV](eType: ETs[IK, IV, EK, E, OK, OV]): Option[Map[EdgeKey[EK, E], Vertex[EK, E]]] =
     tMap.get(eType).asInstanceOf[Option[Map[EdgeKey[EK, E], Vertex[EK, E]]]]
-
+0
   /*
   def getE[K, V](ek: EdgeKey[K, V]) = es.getE(ek)*/
 
