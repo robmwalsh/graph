@@ -12,11 +12,10 @@ object SimpleInterpreter {
   ): Either[List[V], List[E]] =
     ???
 
+  //todo make tail-recursive
   def go[VK, V, IK, IV, EK, E, OK, OV, GS <: GraphSchema](
     traversal: Traversal[VK, V, IK, IV, EK, E, OK, OV, GS]
-  )(
-    result: Either[List[Vertex[VK, V]], List[Edge[IK, IV, EK, E, OK, OV]]]
-  ): Either[List[Vertex[VK, V]], List[Edge[IK, IV, EK, E, OK, OV]]] =
+  ): Either[List[Edge[IK, IV, EK, E, OK, OV]], List[Vertex[VK, V]]] =
     traversal match {
       case source: Traversal.Source[GS] =>
         source match {
@@ -30,9 +29,10 @@ object SimpleInterpreter {
                 .getVs[VK, V](t.vType)
                 .values
                 .toList
-            Left(res)
-          case t: VertexTraversal.VTraversal[VK, V, GS] => ???
-          case t: VertexTraversal.Has[VK, V, GS]        => ???
+            Right(res)
+          case t: VertexTraversal.VTraversal[VK, V, GS] => go(t.tail).flatMap()
+          case t: VertexTraversal.Has[VK, V, GS] =>
+            Right(go(t.tail).getOrElse(List.empty[Vertex[VK, V]]).filter(v => t.p(v.value)))
           case t: EdgeTraversal.ESource[IK, IV, EK, E, OK, OV, GS] =>
             val res = t.tail.graph
               .getEs[IK, IV, EK, E, OK, OV](t.eType)
