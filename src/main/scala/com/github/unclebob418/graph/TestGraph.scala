@@ -2,7 +2,6 @@ package com.github.unclebob418.graph
 
 import com.github.unclebob418.graph.AirRoutesEdgeType._
 import com.github.unclebob418.graph.AirRoutesVertexType._
-import com.github.unclebob418.graph.traversal.Traversal.Source.Anonymous
 import com.github.unclebob418.graph.traversal.interpreter.DescriptionInterpreter
 
 //based on https://github.com/krlawrence/graph/tree/master/sample-data

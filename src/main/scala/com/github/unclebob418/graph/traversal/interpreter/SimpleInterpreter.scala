@@ -17,7 +17,9 @@ object SimpleInterpreter {
         }
       case step: Traversal.Step[E, V, GS] =>
         step match {
-          case t: VertexTraversal.VSource[k, V, GS]                => val x = Right(t.tail.graph.getVs[k,V](t.vType))
+          case t: VertexTraversal.VSource[k, V, GS]                =>
+            val x = t.tail.graph.getVs[k,V](t.vType).fold(List.empty)
+
           case t: VertexTraversal.VTraversal[k, V, GS]             => ???
           case t: VertexTraversal.Has[k, V, GS]                    => ???
           /*case t: EdgeTraversal.ESource[ik, iv, ok, ov, ik, e, GS] =>
