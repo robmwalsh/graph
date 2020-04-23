@@ -1,15 +1,15 @@
 package com.github.unclebob418.graph.traversal.interpreter
 
-import com.github.unclebob418.graph.{ Edge, EdgeKey, GraphSchema, Vertex, VertexKey, VertexType }
-import com.github.unclebob418.graph.traversal.Traversal
+import com.github.unclebob418.graph.{Edge, EdgeKey, GraphSchema, Vertex, VertexKey, VertexType}
+import com.github.unclebob418.graph.traversal.{Traversal, TraversalResult}
 import com.github.unclebob418.graph.traversal.Traversal.Source
-import com.github.unclebob418.graph.traversal.Traversal.Step.{ EdgeTraversal, VertexTraversal }
+import com.github.unclebob418.graph.traversal.Traversal.Step.{EdgeTraversal, VertexTraversal}
 
 object SimpleInterpreter {
 
-  def interpret[VK, V, IK, IV, EK, E, OK, OV, GS <: GraphSchema](
+  def interpret[A, VK, V, IK, IV, EK, E, OK, OV, GS <: GraphSchema](
     traversal: Traversal[VK, V, IK, IV, EK, E, OK, OV, GS]
-  ): Either[List[V], List[E]] =
+  ): TraversalResult[A] =
     ???
 
   //todo make tail-recursive
@@ -30,7 +30,7 @@ object SimpleInterpreter {
                 .values
                 .toList
             Right(res)
-          case t: VertexTraversal.VTraversal[VK, V, GS] => go(t.tail).flatMap()
+          case t: VertexTraversal.VTraversal[VK, V, GS] => ??? //go(t.tail).flatMap()
           case t: VertexTraversal.Has[VK, V, GS] =>
             Right(go(t.tail).getOrElse(List.empty[Vertex[VK, V]]).filter(v => t.p(v.value)))
           case t: EdgeTraversal.ESource[IK, IV, EK, E, OK, OV, GS] =>

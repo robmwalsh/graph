@@ -6,7 +6,13 @@ import com.github.unclebob418.graph.traversal.Traversal.Step.EdgeTraversal.ETrav
 import com.github.unclebob418.graph.traversal.Traversal.Step.VertexTraversal
 import com.github.unclebob418.graph.traversal.Traversal.Step.VertexTraversal.{ VSource, VTraversal }
 
-sealed trait Traversal[+VK, +V, +IK, +IV, +EK, +E, +OK, +OV, GS <: GraphSchema] extends Schema[GS]
+sealed trait Traversal[+VK, +V, +IK, +IV, +EK, +E, +OK, +OV, GS <: GraphSchema] extends Schema[GS] {
+  def foldLeft[VK0 >: VK, V0 >: V, IK0 >: IK, IV0 >: IV, EK0 >: EK, E0 >: E, OK0 >: OK, OV0 >: OV, A](
+    as: Traversal[VK0, V0, IK0, IV0, EK0, E0, OK0, OV0, GS]
+  )(z: TraversalResult[A])(
+    f: (TraversalResult[A], Traversal[VK, V, IK, IV, EK, E, OK, OV, GS]) => TraversalResult[A]
+  ): TraversalResult[A]
+}
 object Traversal {
 
   /**
