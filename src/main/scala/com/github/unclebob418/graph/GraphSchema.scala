@@ -1,7 +1,5 @@
 package com.github.unclebob418.graph
 
-import com.github.unclebob418.graph.traversal.Traversal.Source
-import com.github.unclebob418.graph.traversal.Traversal.Source.GraphTraversalSource
 
 //todo standardise naming and order of types here
 trait Schema[GS <: GraphSchema] {

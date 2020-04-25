@@ -1,9 +1,8 @@
 package com.github.unclebob418.graph.traversal.interpreter
 
-import com.github.unclebob418.graph.{Edge, EdgeKey, GraphSchema, Vertex, VertexKey, VertexType}
-import com.github.unclebob418.graph.traversal.{Traversal, TraversalResult}
-import com.github.unclebob418.graph.traversal.Traversal.Source
-import com.github.unclebob418.graph.traversal.Traversal.Step.{EdgeTraversal, VertexTraversal}
+import com.github.unclebob418.graph.{ Edge, GraphSchema, Vertex }
+import com.github.unclebob418.graph.traversal.{ Traversal, TraversalResult }
+import com.github.unclebob418.graph.traversal.Traversal.Step.{ EdgeTraversal, VertexTraversal }
 
 object SimpleInterpreter {
 
@@ -17,10 +16,7 @@ object SimpleInterpreter {
     traversal: Traversal[VK, V, IK, IV, EK, E, OK, OV, GS]
   ): Either[List[Edge[IK, IV, EK, E, OK, OV]], List[Vertex[VK, V]]] =
     traversal match {
-      case source: Traversal.Source[GS] =>
-        source match {
-          case t: Source.GraphTraversalSource[_] => Left(List.empty)
-        }
+      case source: Traversal.GraphTraversalSource[GS] => Left(List.empty)
       case step: Traversal.Step[VK, V, IK, IV, EK, E, OK, OV, GS] =>
         step match {
           case t: VertexTraversal.VSource[VK, V, GS] =>
@@ -38,7 +34,7 @@ object SimpleInterpreter {
               .getEs[IK, IV, EK, E, OK, OV](t.eType)
               .values
               .toList
-            Right(res)
+            Left(res)
           case t: EdgeTraversal.ETraversal[IK, IV, EK, E, OK, OV, GS] => ???
           case t: EdgeTraversal.Has[IK, IV, EK, E, OK, OV, GS]        => ???
         }
