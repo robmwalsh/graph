@@ -6,8 +6,8 @@ import com.github.unclebob418.graph.traversal.Traversal.Step.{ EdgeTraversal, Ve
 
 object SimpleInterpreter {
 
-  def interpret[A, VK, V, IK, IV, EK, E, OK, OV, GS <: GraphSchema](
-                                                                     traversal: Traversal.Step[VK, V, IK, IV, EK, E, OK, OV, GS]
+  def interpret[A, K, V, GS <: GraphSchema](
+                                                                     traversal: Traversal.Step[K,V, GS]
                                                                    ): List[String] = ???
    /* traversal.foldRight(List.empty[TraversalResult])(
       (z, t) =>

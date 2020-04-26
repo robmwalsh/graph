@@ -81,7 +81,8 @@ object Test extends App {
   val t1 = g.t
     .V(Countries)
     .has(_.desc == "Australia")
-    .outV(Airports)
+    .outE(CountryAirport)
+    .outV
     .has(_.code == "SYD")
     .outE(Routes)
     .has(_.distance > 200)

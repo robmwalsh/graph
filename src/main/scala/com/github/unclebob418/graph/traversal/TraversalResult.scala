@@ -1,12 +1,11 @@
 package com.github.unclebob418.graph.traversal
 
-import com.github.unclebob418.graph.{ Edge, Vertex }
+import com.github.unclebob418.graph.{ Edge, GraphComponent, Vertex }
 
-sealed trait TraversalResult
+sealed trait TraversalResult[+K, +V]
 object TraversalResult {
-  case class VertexList[+A <: List[Vertex[_, _]]](vs: List[A])         extends TraversalResult
-  case class EdgeList[+A <: List[Edge[_, _, _, _, _, _]]](es: List[A]) extends TraversalResult
-  case class Aggregate[+A](value: A)                                   extends TraversalResult
-  case class Path[+A](path: A)                                         extends TraversalResult
-  case object Empty                                                    extends TraversalResult
+  case class VertexList[K, V](vs: List[Vertex[K, V]])                 extends TraversalResult[K, V]
+  case class EdgeList[K, V](es: List[Edge[Any, Any, K, V, Any, Any]]) extends TraversalResult[K, V]
+  case class Aggregate[V](value: V)                                   extends TraversalResult[Any, V]
+  case object Empty                                                   extends TraversalResult[Any, Any]
 }
