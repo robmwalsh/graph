@@ -2,7 +2,8 @@ package com.github.unclebob418.graph.traversal.interpreter
 
 import com.github.unclebob418.graph.GraphSchema
 import com.github.unclebob418.graph.traversal.Traversal
-import com.github.unclebob418.graph.traversal.Traversal.Step.{ EdgeTraversal, VertexTraversal }
+import com.github.unclebob418.graph.traversal.Traversal.Step.Aggregate.Count
+import com.github.unclebob418.graph.traversal.Traversal.Step.{EdgeTraversal, VertexTraversal}
 
 object DescriptionInterpreter {
 
@@ -17,6 +18,7 @@ object DescriptionInterpreter {
         case t: EdgeTraversal.ESource[iv, ik, K, V, ov, ok, GS]    => s"Edge Source (${t.eType})" :: z
         case t: EdgeTraversal.ETraversal[iv, ik, K, V, ov, ok, GS] => s"Edge Traversal (${t.eType})" :: z
         case t: EdgeTraversal.EHas[iv, ik, K, V, ov, ok, GS]       => s"Edge Has (${t.eType})" :: z
+        case _: Count[GS]                                          => s"Count Aggregate" :: z
       }
   )
 }

@@ -40,11 +40,11 @@ object AirRoutesEdgeType {
     override def key(e: Route): EdgeKey[Int, Route] = EdgeKey(e.id)
   }
 
-  implicit case object ContinentAirport extends AirRoutesEdgeType[Int, Continent, Int, Contains, Int, Airport] {
+  implicit case object ContinentContainsAirport extends AirRoutesEdgeType[Int, Continent, Int, Contains, Int, Airport] {
     override def key(e: Contains): EdgeKey[Int, Contains] = EdgeKey(e.id) //todo get rid of repetition?
   }
 
-  implicit case object CountryAirport extends AirRoutesEdgeType[Int, Country, Int, Contains, Int, Airport] {
+  implicit case object CountryContainsAirport extends AirRoutesEdgeType[Int, Country, Int, Contains, Int, Airport] {
     override def key(e: Contains): EdgeKey[Int, Contains] = EdgeKey(e.id) //todo get rid of repetition?
   }
 }
@@ -81,20 +81,21 @@ object Test extends App {
   val t1 = g.t
     .V(Countries)
     .has(_.desc == "Australia")
-    .outE(CountryAirport)
+    .outE(CountryContainsAirport)
     .outV
     .has(_.code == "SYD")
     .outE(Routes)
     .has(_.distance > 200)
+    .count
 
   val r1 = DescriptionInterpreter.interpret(t1)
 
-  val x2 = g.t
+  val t2 = g.t
     .E(Routes)
     .has(_.id == 1)
     .outV
 
-  val r2 = DescriptionInterpreter.interpret(t1)
+  val r2 = DescriptionInterpreter.interpret(t2)
 
   println(s"r1 = $r1")
   println(s"r2 = $r2")

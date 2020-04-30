@@ -8,7 +8,7 @@ object Graph {
       val vMap = Map.empty[Any, Any]
       val eMap = Map.empty[Any, Any]
       val tMap = Map.empty[Any, Map[Any, Any]]
-      val gs   = gs0
+      val gs: GS = gs0
     })
 }
 
@@ -17,7 +17,7 @@ sealed trait Graph[GS <: GraphSchema] extends Schema[GS] { self =>
   val eMap: Map[Any, Any]           //[(Type, EK), EV] // edge map, stores all edges
   val tMap: Map[Any, Map[Any, Any]] //[Type, Map[K, V]] // tmap, stores all verticies and edges indexed by type
 
-  def t: GraphTraversalSource[GS] = GraphTraversalSource(self)
+  def t: GraphTraversalSource[GS] = GraphTraversalSource(self.gs)
   def addV[K, V](v: V)(implicit vType: VTs[K, V]): Some[Graph[GS]] = {
     //todo validate
     val vertexKey            = vType.key(v)
@@ -92,21 +92,16 @@ sealed trait Graph[GS <: GraphSchema] extends Schema[GS] { self =>
         )
     )
   }
+
   def containsV[K, V](vk: VertexKey[K, V])(implicit vType: VTs[K, V]): Boolean = vMap.contains((vType, vk))
 
   def copy(vMap0: Map[Any, Any] = vMap, eMap0: Map[Any, Any] = eMap, tMap0: Map[Any, Map[Any, Any]] = tMap): Graph[GS] =
     new Graph[GS] {
-      val vMap   = vMap0
-      val eMap   = eMap0
-      val tMap   = tMap0
+      val vMap: Map[Any, Any] = vMap0
+      val eMap: Map[Any, Any] = eMap0
+      val tMap: Map[Any, Map[Any, Any]] = tMap0
       val gs: GS = self.gs
     }
-  /*
-  def pathTo[SK, SV, TK, TV](start: VertexKey[SK, SV], target: VertexKey[TK, TV]) = {
-    def loop[CK, CV](current: VertexKey[CK, CV], target: VertexKey[TK, TV], graph: Graph[GS]) = ???
-    ???
-  }
-   */
 
   //todo make private
   private[graph] def getV[VK, V](vk: VertexKey[VK, V])(implicit vType: VTs[VK, V]): Option[Vertex[VK, V]] =
@@ -128,8 +123,4 @@ sealed trait Graph[GS <: GraphSchema] extends Schema[GS] { self =>
       .asInstanceOf[Option[Map[EdgeKey[EK, E], Edge[IK, IV, EK, E, OK, OV]]]]
       .getOrElse(Map.empty[EdgeKey[EK, E], Edge[IK, IV, EK, E, OK, OV]])
 
-  /*
-  def getE[K, V](ek: EdgeKey[K, V]) = es.getE(ek)*/
-
-  //def removeV[K, V](v: V)(implicit vType: VT[K, V]): Some[Graph[GS]] = Some(copy(vs.removeV(vType.key(v), es.removeEs)))
 }
