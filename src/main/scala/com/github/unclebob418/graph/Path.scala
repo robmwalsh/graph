@@ -1,5 +1,7 @@
 package com.github.unclebob418.graph
 
+import com.github.unclebob418.graph.Key.VertexKey
+
 
 sealed trait Path {
   def :*:[HK, HV](head: VertexKey[HK, HV]): Path

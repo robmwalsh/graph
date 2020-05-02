@@ -1,59 +1,8 @@
 package com.github.unclebob418.graph
 
-import com.github.unclebob418.graph.AirRoutesEdgeType._
-import com.github.unclebob418.graph.AirRoutesVertexType._
-import com.github.unclebob418.graph.traversal.interpreter.{ DescriptionInterpreter, SimpleInterpreter }
-
-//based on https://github.com/krlawrence/graph/tree/master/sample-data
-
-sealed trait AirRoutesVertexType[VK, V] extends VertexType[VK, V]
-object AirRoutesVertexType {
-  //vertices
-  sealed case class Airport(id: Int, code: String, icao: String, desc: String)
-  sealed case class Country(id: Int, code: String, desc: String)
-  sealed case class Continent(id: Int, code: String, desc: String)
-
-  implicit case object Airports extends AirRoutesVertexType[Int, Airport] { self =>
-    override def key(v: Airport): VertexKey[Int, Airport] = VertexKey(v.id)
-  }
-  implicit case object Countries extends AirRoutesVertexType[Int, Country] {
-    override def key(v: Country): VertexKey[Int, Country] = VertexKey(v.id)
-  }
-  implicit case object Continents extends AirRoutesVertexType[Int, Continent] {
-    override def key(v: Continent): VertexKey[Int, Continent] = VertexKey(v.id)
-  }
-}
-sealed trait AirRoutesConnectionType[IK, IV, OK, OV] extends ConnectionType[IK, IV, OK, OV]
-object AirRoutesConnectionType {
-  implicit case object AirportAirport   extends AirRoutesConnectionType[Int, Airport, Int, Airport]
-  implicit case object ContinentAirport extends AirRoutesConnectionType[Int, Continent, Int, Airport]
-  implicit case object CountryAirport   extends AirRoutesConnectionType[Int, Country, Int, Airport]
-}
-
-sealed trait AirRoutesEdgeType[IK, IV, EK, E, OK, OV] extends EdgeType[IK, IV, EK, E, OK, OV]
-object AirRoutesEdgeType {
-  //edges
-  sealed case class Route(id: Int, distance: Int)
-  sealed case class Contains(id: Int)
-
-  implicit case object Routes extends AirRoutesEdgeType[Int, Airport, Int, Route, Int, Airport] {
-    override def key(e: Route): EdgeKey[Int, Route] = EdgeKey(e.id)
-  }
-
-  implicit case object ContinentContainsAirport extends AirRoutesEdgeType[Int, Continent, Int, Contains, Int, Airport] {
-    override def key(e: Contains): EdgeKey[Int, Contains] = EdgeKey(e.id) //todo get rid of repetition?
-  }
-
-  implicit case object CountryContainsAirport extends AirRoutesEdgeType[Int, Country, Int, Contains, Int, Airport] {
-    override def key(e: Contains): EdgeKey[Int, Contains] = EdgeKey(e.id) //todo get rid of repetition?
-  }
-}
-
-object AirRoutesSchema extends GraphSchema {
-  override type VTs[K, V]                  = AirRoutesVertexType[K, V]
-  override type CTs[IK, IV, OK, OV]        = AirRoutesConnectionType[IK, IV, OK, OV]
-  override type ETs[IK, IV, EK, E, OK, OV] = AirRoutesEdgeType[IK, IV, EK, E, OK, OV]
-}
+import AirRoutesSchema._
+import com.github.unclebob418.graph.AirRoutesSchema.AirRoutesEdgeType.Routes
+import com.github.unclebob418.graph.AirRoutesSchema.AirRoutesVertexType.{Airports, Countries}
 
 object Test extends App {
 
@@ -78,25 +27,28 @@ object Test extends App {
       flatMap (_.addE(as, contains, syd))
       flatMap (_.addE(as, contains, syd))).head
 
-  val t1 = g.t
+  val t1 = g
     .V(Countries)
     .has(_.desc == "Australia")
-    .outE(CountryContainsAirport)
-    .outV
+    .outV(airports)
     .has(_.code == "SYD")
-    .outE(Routes)
+    .outE(routes)
     .has(_.distance > 200)
-    .count
+    .inV
 
-  val r1 = DescriptionInterpreter.interpret(t1)
+  //.count
 
-  val t2 = g.t
+  //SimpleInterpreter.interpret(t1, g)
+
+  //val r1 = DescriptionInterpreter.interpret(t1)
+
+  val t2 = g
     .E(Routes)
-    .has(_.id == 1)
     .outV
+    .has(_.id == 2)
+  //val r2 = DescriptionInterpreter.interpret(t2)
 
-  val r2 = DescriptionInterpreter.interpret(t2)
+  //println(s"r1 = $r1")
+  //println(s"r2 = $r2")
 
-  println(s"r1 = $r1")
-  println(s"r2 = $r2")
 }

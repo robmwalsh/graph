@@ -1,13 +1,15 @@
 package com.github.unclebob418.graph
-import com.github.unclebob418.graph.GraphSchema
+
+import com.github.unclebob418.graph.Key.VertexKey
+import com.github.unclebob418.graph.Type.VertexType
 
 case class Vertex[K, V](
-  key: VertexKey[K, V],
-  value: V,
-  // maps are both Map[EType, Set[(Edge, VertexKey)]]
-  inEs: Map[Any, Set[(Any, Any)]],
-  outEs: Map[Any, Set[(Any, Any)]]
-)(implicit vType: VertexType[K, V]) extends GraphComponent [K, V]{
+                         key: VertexKey[K, V],
+                         vertex: V,
+                         // maps are both Map[EType, Set[(Edge, VertexKey)]]
+                         inEs: Map[Any, Set[(Any, Any)]],
+                         outEs: Map[Any, Set[(Any, Any)]]
+)(implicit vType: VertexType[K, V]) {
 
   def addInE[EK, E, IK, IV](e: E, inVK: VertexKey[IK, IV], eType: Any/*EdgeType[IK,IV, EK, E, K, V]*/):  Vertex[K, V] =
     //todo validate
