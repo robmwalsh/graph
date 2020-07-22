@@ -25,10 +25,10 @@ sealed trait Graph[GS <: GraphSchema] extends Schema[GS] { self =>
   val in: Map[Any, Set[(Any, Any)]]  //   [K, Set[(EK, VK)]]  - stores incoming edge & vertex key for each key
   val out: Map[Any, Set[(Any, Any)]] //   [K, Set[(EK, VK)]]  - stores outgoing edge & vertex key for each key
 
-  def V[K, V](vType: VTs[K, V]): Source.VertexSource[K, V, GS] =
+  def V[K, V](vType: VTs[K, V]) =
     Traversal.Source.VertexSource(self, vType)
 
-  def E[IK, IV, K, V, OK, OV](eType: ETs[IK, IV, K, V, OK, OV]): Source.EdgeSource[IK, IV, K, V, OK, OV, GS] =
+  def E[IK, IV, K, V, OK, OV](eType: ETs[IK, IV, K, V, OK, OV]) =
     Source.EdgeSource(self, eType)
 
   def addV[K, V](v: V)(implicit vType: VTs[K, V]): Some[Graph[GS]] = {

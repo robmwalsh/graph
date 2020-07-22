@@ -2,7 +2,7 @@ package com.github.unclebob418.graph
 
 import AirRoutesSchema._
 import com.github.unclebob418.graph.AirRoutesSchema.AirRoutesEdgeType.Routes
-import com.github.unclebob418.graph.AirRoutesSchema.AirRoutesVertexType.{Airports, Countries}
+import com.github.unclebob418.graph.AirRoutesSchema.AirRoutesVertexType.{ Airports, Countries }
 
 object Test extends App {
 
@@ -27,14 +27,17 @@ object Test extends App {
       flatMap (_.addE(as, contains, syd))
       flatMap (_.addE(as, contains, syd))).head
 
-  /*val t1 = g
+  val t1 = g
     .V(Countries)
-    .has(_.desc == "Australia")
+    .outV(Airports)
+    .has(_.value.map(_.desc == "Australia"))
+  //.outV(Airports)
+  /*.has(_.desc == "Australia")
     .outV(airports)
     .has(_.code == "SYD")
     .outE(routes)
     .has(_.distance > 200)
-    .inV
+    .inV*/
 
   //.count
 
@@ -42,7 +45,7 @@ object Test extends App {
 
   //val r1 = DescriptionInterpreter.interpret(t1)
 
-  val t2 = g
+  /*val t2 = g
     .E(Routes)
     .outV
     .has(_.id == 2)*/
