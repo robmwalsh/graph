@@ -2,7 +2,10 @@ package com.github.unclebob418.graph.traversal
 
 import com.github.unclebob418.graph.Key.{ EdgeKey, VertexKey }
 import com.github.unclebob418.graph.Type.{ EdgeType, VertexType }
+import com.github.unclebob418.graph.traversal.Traversal.{ Filter, Step }
+import com.github.unclebob418.graph.traversal.Traversal.Filter.Has
 import com.github.unclebob418.graph.traversal.Traversal.FlatMap.{ Edge2Vertex, Vertex2Edge, Vertex2Vertex }
+import com.github.unclebob418.graph.traversal.Traversal.Source.EdgeSource
 import com.github.unclebob418.graph.{ Graph, GraphSchema, Key, Schema }
 
 //the state of a traversal at a particular step
@@ -106,33 +109,69 @@ sealed trait Traversal[-A, C, GS <: GraphSchema] extends Schema[GS] { self =>
 
   def value(implicit ev: C <:< VertexKey[K, V]): Traversal.Map.Value[A, VertexKey[K, V], V, GS] =
     new Traversal.Map.Value[A, VertexKey[K, V], V, GS] {
-      override type IK = Nothing; type K = Nothing; type OK = Nothing
-      override type IV = Nothing; type V = self.V; type OV  = Nothing
 
       val gs: GS = self.gs
       override val from: Traversal[A, VertexKey[self.K, self.V], GS] =
         self.asInstanceOf[Traversal[A, VertexKey[self.K, self.V], GS]]
     }
+
+  def has(p0: Traversal[C, Boolean, GS]): Filter.Has[A, C, GS] = new Filter.Has[A, C, GS] {
+    override type IK = self.IK; type K = self.K; type OK = self.OV
+    override type IV = self.IV; type V = self.V; type OV = self.OK
+    override val p: Traversal[C, Boolean, GS] = p0
+    override val gs: GS                       = self.gs
+  }
+
+  //def __[A]() = new Step[] {}
 }
 object Traversal {
 
   //a source of traversers
   sealed trait Source[A, GS <: GraphSchema] extends Traversal[Any, A, GS] {
-    val graph: Graph[GS]
-    val gs = graph.gs
+    //val graph: Graph[GS]
+    val gs: GS
   }
   object Source {
-    sealed case class VertexSource[VK, V, GS <: GraphSchema](graph: Graph[GS], vt: VertexType[VK, V])
-        extends Source[VertexKey[VK, V], GS]
-    //why can't I use (vt: graph.VTs[VK, V]) in a 2nd parameter list
+    sealed trait VertexSource[VK0, V0, GS <: GraphSchema] extends Source[VertexKey[VK0, V0], GS] {
+      val vt: VertexType[VK0, V0]
+      val graph: Graph[GS]
+      //todo Aux all the things
+    }
+    object VertexSource {
+      def apply[VK0, V0, GS <: GraphSchema](graph0: Graph[GS], vt0: VertexType[VK0, V0]): VertexSource[VK0, V0, GS] =
+        new VertexSource[VK0, V0, GS] {
+          override type IK = Nothing; type K = VK0; type OK = Nothing
+          override type IV = Nothing; type V = V0; type OV  = Nothing
 
-    sealed case class EdgeSource[IK, IV, K, V, OK, OV, GS <: GraphSchema](
-      graph: Graph[GS],
-      vt: EdgeType[IK, IV, K, V, OK, OV]
-    ) extends Source[EdgeKey[IK, IV, K, V, OK, OV], GS]
+          override val vt: VertexType[VK0, V0] = vt0
+          override val graph: Graph[GS]        = graph0
+          override val gs: GS                  = graph0.gs
+
+        }
+    }
+
+    sealed trait EdgeSource[IK0, IV0, K0, V0, OK0, OV0, GS <: GraphSchema]
+        extends Source[EdgeKey[IK0, IV0, K0, V0, OK0, OV0], GS] {
+      val graph: Graph[GS]
+      val et: EdgeType[IK0, IV0, K0, V0, OK0, OV0]
+    }
+
+    object EdgeSource {
+      def apply[IK0, IV0, K0, V0, OK0, OV0, GS <: GraphSchema](
+        graph0: Graph[GS],
+        et0: EdgeType[IK0, IV0, K0, V0, OK0, OV0]
+      ): EdgeSource[IK0, IV0, K0, V0, OK0, OV0, GS] = new EdgeSource[IK0, IV0, K0, V0, OK0, OV0, GS] {
+        override type IK = IK0; type K = K0; type OK = OK0
+        override type IV = IV0; type V = V0; type OV = OV0
+
+        override val et: EdgeType[IK0, IV0, K0, V0, OK0, OV0] = et0
+        override val graph: Graph[GS]                         = graph0
+        override val gs: GS                                   = graph0.gs
+
+      }
+    }
 
   }
-
   sealed trait Step[-A, B, C, GS <: GraphSchema] extends Traversal[A, C, GS] {
     val from: Traversal[A, B, GS]
   }
@@ -190,7 +229,7 @@ object Traversal {
   object Filter {
 
     sealed trait Has[-A, B, GS <: GraphSchema] extends Filter[A, B, GS] {
-      val p: B => Boolean
+      val p: Traversal[B, Boolean, GS]
       val gs: GS
     }
   }

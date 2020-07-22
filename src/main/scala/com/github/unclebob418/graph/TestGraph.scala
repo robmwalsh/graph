@@ -27,7 +27,7 @@ object Test extends App {
       flatMap (_.addE(as, contains, syd))
       flatMap (_.addE(as, contains, syd))).head
 
-  val t1 = g
+  /*val t1 = g
     .V(Countries)
     .has(_.desc == "Australia")
     .outV(airports)
@@ -45,7 +45,7 @@ object Test extends App {
   val t2 = g
     .E(Routes)
     .outV
-    .has(_.id == 2)
+    .has(_.id == 2)*/
   //val r2 = DescriptionInterpreter.interpret(t2)
 
   //println(s"r1 = $r1")
