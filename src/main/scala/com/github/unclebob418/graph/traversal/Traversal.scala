@@ -2,11 +2,11 @@ package com.github.unclebob418.graph.traversal
 
 import com.github.unclebob418.graph.Key.{ EdgeKey, VertexKey }
 import com.github.unclebob418.graph.Type.{ EdgeType, VertexType }
-import com.github.unclebob418.graph.traversal.Traversal.{ Filter, Step }
-import com.github.unclebob418.graph.traversal.Traversal.Filter.Has
+import com.github.unclebob418.graph.traversal.Traversal.Filter
 import com.github.unclebob418.graph.traversal.Traversal.FlatMap.{ Edge2Vertex, Vertex2Edge, Vertex2Vertex }
-import com.github.unclebob418.graph.traversal.Traversal.Source.{ Anonymous, EdgeSource }
 import com.github.unclebob418.graph.{ Graph, GraphSchema, Key, Schema }
+
+import scala.annotation.implicitNotFound
 
 //the state of a traversal at a particular step
 sealed trait Traverser[V] {
@@ -23,7 +23,8 @@ sealed trait Traversal[-A, C, GS <: GraphSchema] extends Schema[GS] { self =>
   type IV; type V; type OV
 
   def outV[OK0, OV0](oVType: VTs[OK0, OV0])(
-    implicit ct0: CTs[K, V, OK0, OV0],
+    implicit @implicitNotFound("Couldn't find a connection from ${C} to VTs[${IK0},${IV0}], check the schema ${GS}")
+    ct0: CTs[K, V, OK0, OV0],
     ev: C =:= VertexKey[K, V]
   ) =
     new Vertex2Vertex.Out[A, VertexKey[K, V], VertexKey[OK0, OV0], GS] {
@@ -36,7 +37,8 @@ sealed trait Traversal[-A, C, GS <: GraphSchema] extends Schema[GS] { self =>
     }
 
   def inV[IK0, IV0](iVType: VTs[IK0, IV0])(
-    implicit ct0: CTs[IK0, IV0, K, V],
+    implicit @implicitNotFound("Couldn't find a connection from ${C} to VTs[${IK0},${IV0}], check the schema ${GS}")
+    ct0: CTs[IK0, IV0, K, V],
     ev: C <:< VertexKey[K, V]
   ) =
     new Vertex2Vertex.In[A, VertexKey[K, V], VertexKey[IK0, IV0], GS] {
@@ -72,8 +74,8 @@ sealed trait Traversal[-A, C, GS <: GraphSchema] extends Schema[GS] { self =>
     }
 
   def out(
-    implicit oVType: VTs[OK, OV],
-    ev: C <:< EdgeKey[IK, IV, K, V, OK, OV]
+    implicit ev: C <:< EdgeKey[IK, IV, K, V, OK, OV],
+    oVType: VTs[OK, OV]
   ) =
     new Edge2Vertex.Out[A, EdgeKey[IK, IV, K, V, OK, OV], VertexKey[OK, OV], GS, OK, OV] {
       override type IK = Nothing; type K = self.OK; type OK = Nothing
@@ -85,8 +87,8 @@ sealed trait Traversal[-A, C, GS <: GraphSchema] extends Schema[GS] { self =>
     }
 
   def in(
-    implicit iVType: VTs[IK, IV],
-    ev: C <:< EdgeKey[IK, IV, K, V, OK, OV]
+    implicit ev: C <:< EdgeKey[IK, IV, K, V, OK, OV],
+    iVType: VTs[IK, IV]
   ) =
     new Edge2Vertex.In[A, EdgeKey[IK, IV, K, V, OK, OV], VertexKey[IK, IV], GS, IK, IV] {
       override type IK = Nothing; type K = self.IK; type OK = Nothing
@@ -97,30 +99,32 @@ sealed trait Traversal[-A, C, GS <: GraphSchema] extends Schema[GS] { self =>
       override val gs: GS = self.gs
     }
 
-  def id(implicit ev: C <:< VertexKey[K, V]) =
-    new Traversal.Map.Id[A, VertexKey[K, V], K, GS] {
-      override type IK = Nothing; type K = self.K; type OK  = Nothing
-      override type IV = Nothing; type V = Nothing; type OV = Nothing
+  def id(implicit ev: C <:< Key[K, V]) =
+    new Traversal.Map.Id[A, Key[K, V], K, GS] {
+      //override type IK = Nothing; type K = self.K; type OK  = Nothing
+      //override type IV = Nothing; type V = Nothing; type OV = Nothing
 
       val gs: GS = self.gs
-      override val from: Traversal[A, VertexKey[self.K, self.V], GS] =
-        self.asInstanceOf[Traversal[A, VertexKey[self.K, self.V], GS]]
+      override val from: Traversal[A, Key[self.K, self.V], GS] =
+        self.asInstanceOf[Traversal[A, Key[self.K, self.V], GS]]
     }
 
-  def value(implicit ev: C <:< VertexKey[K, V]) =
-    new Traversal.Map.Value[A, VertexKey[K, V], V, GS] {
+  def value(implicit ev: C <:< Key[K, V]) =
+    new Traversal.Map.Value[A, Key[K, V], V, GS] {
+      //override type IK = Nothing; type K = Nothing; type OK = Nothing
+      //override type IV = Nothing; type V = self.V; type OV  = Nothing
 
       val gs: GS = self.gs
-      override val from: Traversal[A, VertexKey[self.K, self.V], GS] =
-        self.asInstanceOf[Traversal[A, VertexKey[self.K, self.V], GS]]
+      override val from: Traversal[A, Key[self.K, self.V], GS] =
+        self.asInstanceOf[Traversal[A, Key[self.K, self.V], GS]]
     }
 
   def map[D](p: C => D): Traversal.Map[A, C, D, GS] = ???
 
-  def has(p0: self.type => Traversal[C, Boolean, GS]): Filter.Has[A, C, GS] =
+  def has(p0: self.type => Traversal[C, Boolean, GS]) =
     new Filter.Has[A, C, GS] {
-      override type IK = self.IK; type K = self.K; type OK = self.OV
-      override type IV = self.IV; type V = self.V; type OV = self.OK
+      type IK = self.IK; type K = self.K; type OK = self.OK
+      type IV = self.IV; type V = self.V; type OV = self.OV
       override val p: Traversal[C, Boolean, GS] = p0(self)
       override val gs: GS                       = self.gs
     }

@@ -31,13 +31,12 @@ object Test extends App {
     .V(Countries)
     .outV(Airports)
     .has(_.value.map(_.desc == "Australia"))
-  //.outV(Airports)
-  /*.has(_.desc == "Australia")
-    .outV(airports)
-    .has(_.code == "SYD")
-    .outE(routes)
-    .has(_.distance > 200)
-    .inV*/
+    .outV(Airports)
+    .has(_.value.map(_.code == "SYD"))
+    .inE(Routes)
+    .has(_.value.map(_.distance > 200))
+    .out
+    .has(_.id.map(_ == 3))
 
   //.count
 
