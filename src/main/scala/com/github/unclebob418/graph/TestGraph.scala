@@ -2,7 +2,8 @@ package com.github.unclebob418.graph
 
 import AirRoutesSchema._
 import com.github.unclebob418.graph.AirRoutesSchema.AirRoutesEdgeType.Routes
-import com.github.unclebob418.graph.AirRoutesSchema.AirRoutesVertexType.{ Airports, Countries }
+import com.github.unclebob418.graph.AirRoutesSchema.AirRoutesVertexType.{Airports, Countries}
+import com.github.unclebob418.graph.traversal.Traversal.Source
 
 object Test extends App {
 
@@ -37,6 +38,8 @@ object Test extends App {
     .has(_.value.map(_.distance > 200))
     .out
     .has(_.id.map(_ == 3))
+
+  val t2 = Source.fromIterable(List(1,2,3), AirRoutesSchema).key(Countries)
 
   //.count
 

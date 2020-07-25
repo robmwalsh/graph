@@ -39,15 +39,16 @@ sealed trait Key[K, V] {
   val cType: Type[_,_,K,V,_,_]
 }
 object Key {
+  //todo need a better name for c(omponent)Type, confused with c(onnection)Type
   sealed case class VertexKey[VK, V](key: VK, cType: VertexType[VK, V])                             extends Key[VK, V]
   sealed case class EdgeKey[IK, IV, EK, E, OK, OV](key: EK, cType: EdgeType[IK, IV, EK, E, OK, OV]) extends Key[EK, E]
 }
 
-sealed trait Type[+IK, +IV, K, V, +OK, +OV]
+sealed trait Type[+IK, +IV, +K, +V, +OK, +OV]
 object Type {
 
-  trait VertexType[VK, V] extends Type[Nothing, Nothing, VK, V, Nothing, Nothing] {
-    def key(v: V): VertexKey[VK, V]
+  trait VertexType[K, V] extends Type[Nothing, Nothing, K, V, Nothing, Nothing] {
+    def key(v: V): VertexKey[K, V]
   }
   object VertexType {
     def unapply[IK, IV, K, V, OK, OV](arg: Type[IK, IV, K, V, OK, OV]): Option[VertexType[K, V]] = arg match {
