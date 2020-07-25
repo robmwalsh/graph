@@ -31,9 +31,9 @@ object Test extends App {
   val t1 = g
     .V(Countries)
     .outV(Airports)
-    .has(_.value.map(_.desc == "Australia"))
-    .outV(Airports)
     .has(_.value.map(_.code == "SYD"))
+    .outV(Airports)
+    .has(_.value.map(_.code == "MEL"))
     .inE(Routes)
     .has(_.value.map(_.distance > 200))
     .out
