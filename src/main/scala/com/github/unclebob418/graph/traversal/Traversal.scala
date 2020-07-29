@@ -121,8 +121,8 @@ sealed trait Traversal[-A, C, GS <: GraphSchema] extends Schema[GS] { self =>
       val gs: GS = self.gs
     }
 
-  //
-  def id(implicit ev: C <:< Key[K, V]) = map(ev(_).key)
+  def id(implicit ev: C <:< Key[K, V]) =
+    map(ev(_).key)
 
   //convert a value to a vertex key
   def key[V0](vType: VTs[C, V0]) = new Step.Map.ToValue[A, C, VertexKey[C, V0], GS] {
@@ -236,6 +236,11 @@ object Traversal {
           val gs: GS                                                                      = graph0.gs
           val traversalType: VertexTraversal[Nothing, Nothing, VK0, V0, Nothing, Nothing] = VertexTraversal(vt0)
         }
+
+      def unapply[A, C, GS <: GraphSchema](arg: Traversal[A, C, GS]): Option[VertexType[Any, Any]] = arg match {
+        case source: VertexSource[_, _, GS] => Some(source.vt.asInstanceOf[VertexType[Any, Any]])
+        case _                              => None
+      }
     }
 
     sealed trait EdgeSource[IK0, IV0, K0, V0, OK0, OV0, GS <: GraphSchema]
@@ -248,15 +253,22 @@ object Traversal {
       def apply[IK0, IV0, K0, V0, OK0, OV0, GS <: GraphSchema](
         graph0: Graph[GS],
         et0: EdgeType[IK0, IV0, K0, V0, OK0, OV0]
-      ) = new EdgeSource[IK0, IV0, K0, V0, OK0, OV0, GS] {
-        type IK = IK0; type K = K0; type OK = OK0
-        type IV = IV0; type V = V0; type OV = OV0
+      ) =
+        new EdgeSource[IK0, IV0, K0, V0, OK0, OV0, GS] {
+          type IK = IK0; type K = K0; type OK = OK0
+          type IV = IV0; type V = V0; type OV = OV0
 
-        val et: EdgeType[IK0, IV0, K0, V0, OK0, OV0]                 = et0
-        val graph: Graph[GS]                                         = graph0
-        val gs: GS                                                   = graph0.gs
-        val traversalType: EdgeTraversal[IK0, IV0, K0, V0, OK0, OV0] = EdgeTraversal(et0)
-      }
+          val et: EdgeType[IK0, IV0, K0, V0, OK0, OV0]                 = et0
+          val graph: Graph[GS]                                         = graph0
+          val gs: GS                                                   = graph0.gs
+          val traversalType: EdgeTraversal[IK0, IV0, K0, V0, OK0, OV0] = EdgeTraversal(et0)
+        }
+      def unapply[A, C, GS <: GraphSchema](arg: Traversal[A, C, GS]): Option[EdgeType[Any, Any, Any, Any, Any, Any]] =
+        arg match {
+          case source: EdgeSource[_, _, _, _, _, _, GS] =>
+            Some(source.et.asInstanceOf[EdgeType[Any, Any, Any, Any, Any, Any]])
+          case _ => None
+        }
     }
   }
   sealed trait Step[-A, B, C, GS <: GraphSchema] extends Traversal[A, C, GS] {
@@ -270,15 +282,40 @@ object Traversal {
 
       //maps a key to a graph component
       sealed trait ToGraphComponent[-A, B <: Key[_, C], C, GS <: GraphSchema] extends Map[A, B, C, GS]
+      object ToGraphComponent {
+        def unapply[A, C, GS <: GraphSchema](
+          arg: Traversal[A, C, GS]
+        ): Option[Type[Any, Any, Any, Any, Any, Any]] = arg match {
+          case toGraphComponent: ToGraphComponent[_, _, _, GS] =>
+            toGraphComponent.traversalType match {
+              case Location(tType) => Some(tType)
+              case _               => None
+            }
+          case _ => None
+        }
+
+      }
 
       //maps a value to a value
       sealed trait ToValue[-A, B, C, GS <: GraphSchema] extends Map[A, B, C, GS] {
         val f: B => C
       }
+      object ToValue {
+        def unapply[A, C, GS <: GraphSchema](arg: Traversal[A, C, GS]): Option[Any => Any] = arg match {
+          case toValue: ToValue[A, _, C, GS] => Some(toValue.f.asInstanceOf[Any => Any])
+          case _                             => None
+        }
+      }
 
-      //keeps this object if the supplied predicate evaulates to true
+      //keeps this object if the supplied predicate evaluates to true
       sealed trait Filter[-A, B, GS <: GraphSchema] extends Map[A, B, B, GS] {
         val p: B => Boolean
+      }
+      object Filter {
+        def unapply[A, B, GS <: GraphSchema](arg: Traversal[A, B, GS]): Option[Any => Any] = arg match {
+          case filter: Filter[A, B, GS] => Some(filter.p.asInstanceOf[Any => Any])
+          case _                        => None
+        }
       }
     }
 
@@ -344,6 +381,12 @@ object TraversalType {
   }
   sealed trait Location[IK, IV, K, V, OK, OV] extends TraversalType[IK, IV, K, V, OK, OV] {
     val tType: Type[IK, IV, K, V, OK, OV]
+  }
+  object Location {
+    def unapply(arg: TraversalType[_, _, _, _, _, _]): Option[Type[Any, Any, Any, Any, Any, Any]] = arg match {
+      case location: Location[_, _, _, _, _, _] => Some(location.tType.asInstanceOf[Type[Any, Any, Any, Any, Any, Any]])
+      case value: Value[_, _, _, _, _, _]       => None
+    }
   }
   sealed case class VertexTraversal[IK, IV, K, V, OK, OV](tType: VertexType[K, V])
       extends Location[IK, IV, K, V, OK, OV]
