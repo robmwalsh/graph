@@ -35,8 +35,8 @@ trait GraphSchema { self =>
 //todo add type to key? sealed case class VertexKey[K, V, VT <: VertexType[K, V]](key: K)(implicit vType: VertexType[K, V])
 //a Key contains both the type and ID of a component - equivalent to a location on the graph
 sealed trait Key[K, V] {
-  val key:K
-  val cType: Type[_,_,K,V,_,_]
+  val key: K
+  val cType: Type[_, _, K, V, _, _]
 }
 object Key {
   //todo need a better name for c(omponent)Type, confused with c(onnection)Type
@@ -44,11 +44,14 @@ object Key {
   sealed case class EdgeKey[IK, IV, EK, E, OK, OV](key: EK, cType: EdgeType[IK, IV, EK, E, OK, OV]) extends Key[EK, E]
 }
 
-sealed trait Type[+IK, +IV, +K, +V, +OK, +OV]
+sealed trait Type[+IK, +IV, +K, +V, +OK, +OV] { self =>
+  val untyped: Type[Any, Any, Any, Any, Any, Any] = self.asInstanceOf[Type[Any, Any, Any, Any, Any, Any]]
+}
 object Type {
 
-  trait VertexType[K, V] extends Type[Nothing, Nothing, K, V, Nothing, Nothing] {
+  trait VertexType[K, V] extends Type[Nothing, Nothing, K, V, Nothing, Nothing] { self =>
     def key(v: V): VertexKey[K, V]
+    override val untyped: VertexType[Any, Any] = self.asInstanceOf[VertexType[Any, Any]]
   }
   object VertexType {
     def unapply[IK, IV, K, V, OK, OV](arg: Type[IK, IV, K, V, OK, OV]): Option[VertexType[K, V]] = arg match {
@@ -57,10 +60,11 @@ object Type {
     }
   }
 
-  trait EdgeType[IK, IV, EK, E, OK, OV] extends Type[IK, IV, EK, E, OK, OV] {
+  trait EdgeType[IK, IV, EK, E, OK, OV] extends Type[IK, IV, EK, E, OK, OV] { self =>
     def key(e: E): EdgeKey[IK, IV, EK, E, OK, OV]
     //make sure an edge can't exist without a valid connection
     val ct: ConnectionType[IK, IV, OK, OV]
+    override val untyped: EdgeType[Any, Any, Any, Any, Any, Any] = self.asInstanceOf[EdgeType[Any, Any, Any, Any, Any, Any]]
   }
   object EdgeType {
     def unapply[IK, IV, K, V, OK, OV](arg: Type[IK, IV, K, V, OK, OV]): Option[EdgeType[IK, IV, K, V, OK, OV]] =

@@ -41,6 +41,7 @@ object Test extends App {
 
   val t2 = Source.fromIterable(List(1,2,3), AirRoutesSchema).key(Countries)
 
+  val x = t1.toString
   //.count
 
   //SimpleInterpreter.interpret(t1, g)

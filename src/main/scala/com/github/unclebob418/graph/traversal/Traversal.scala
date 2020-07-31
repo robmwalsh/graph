@@ -17,6 +17,7 @@ sealed trait Traverser[V] {
   type Path[_]
   val path: HList.Aux[V] //how we got here, some sort of HList... maybe start with a string?
   val location: Key[K, V]
+
   def value: V
 }
 
@@ -211,15 +212,23 @@ object Traversal {
     def fromStream[A, GS <: GraphSchema](stream: ZStream[Any, Nothing, A], schema: GS) =
       FromStream(stream, schema)
 
-    trait FromStream[A, GS <: GraphSchema] extends Source[A, GS]
+    trait FromStream[A, GS <: GraphSchema] extends Source[A, GS] {
+      val stream: ZStream[Any, Nothing, A]
+    }
     object FromStream {
-      private[graph] def apply[A, GS <: GraphSchema](stream: ZStream[Any, Nothing, A], schema: GS) =
+      private[graph] def apply[A, GS <: GraphSchema](stream0: ZStream[Any, Nothing, A], schema: GS) =
         new FromStream[A, GS] {
           type IK = Nothing; type K = Nothing; type OK = Nothing
           type IV = Nothing; type V = A; type OV       = Nothing
           val gs: GS                                     = schema
           val traversalType: Value[IK, IV, K, V, OK, OV] = Value()
+          val stream: ZStream[Any, Nothing, A]           = stream0
         }
+
+      def unapply(arg: Traversal[_, _, _]): Option[ZStream[Any, Nothing, Any]] = arg match {
+        case fromStream: FromStream[_, _] => Some(fromStream.stream)
+        case _                            => None
+      }
     }
 
     sealed trait VertexSource[VK0, V0, GS <: GraphSchema] extends Source[VertexKey[VK0, V0], GS] {
@@ -236,6 +245,11 @@ object Traversal {
           val gs: GS                                                                      = graph0.gs
           val traversalType: VertexTraversal[Nothing, Nothing, VK0, V0, Nothing, Nothing] = VertexTraversal(vt0)
         }
+
+      def unapply(arg: VertexSource[_, _, _]): Option[VertexType[Any, Any]] = arg match {
+        case vertexSource: VertexSource[_, _, _] => Some(vertexSource.vt.untyped)
+        case _                                   => None
+      }
     }
 
     sealed trait EdgeSource[IK0, IV0, K0, V0, OK0, OV0, GS <: GraphSchema]
@@ -257,6 +271,11 @@ object Traversal {
         val gs: GS                                                   = graph0.gs
         val traversalType: EdgeTraversal[IK0, IV0, K0, V0, OK0, OV0] = EdgeTraversal(et0)
       }
+
+      def unapply(arg: Traversal[_, _, _]): Option[EdgeType[Any, Any, Any, Any, Any, Any]] = arg match {
+        case edgeSource: EdgeSource[_, _, _, _, _, _, _] => Some(edgeSource.et.untyped)
+        case _                                           => None
+      }
     }
   }
   sealed trait Step[-A, B, C, GS <: GraphSchema] extends Traversal[A, C, GS] {
@@ -269,61 +288,126 @@ object Traversal {
     object Map {
 
       //maps a key to a graph component
-      sealed trait ToGraphComponent[-A, B <: Key[_, C], C, GS <: GraphSchema] extends Map[A, B, C, GS]
+      sealed trait ToGraphComponent[-A, B <: Key[_, C], C, GS <: GraphSchema] extends Map[A, B, C, GS] {
+        override val traversalType: Value[IK, IV, K, V, OK, OV]
 
-      //maps a value to a value
+      }
+
+      /**
+       * maps a value to another value
+       * @tparam GS the graph schema
+       */
       sealed trait ToValue[-A, B, C, GS <: GraphSchema] extends Map[A, B, C, GS] {
         val f: B => C
       }
+      object ToValue {
+        def unapply(arg: Traversal[_, _, _]): Option[Any => Any] = arg match {
+          case tv: ToValue[_, _, _, _] => Some(tv.f.asInstanceOf[Any => Any])
+          case _                       => None
+        }
+      }
 
-      //keeps this object if the supplied predicate evaulates to true
+      /**
+       * keeps this object if the supplied predicate evaulates to true
+       */
       sealed trait Filter[-A, B, GS <: GraphSchema] extends Map[A, B, B, GS] {
         val p: B => Boolean
       }
+      object Filter {
+        def unapply(arg: Traversal[_, _, _]): Option[Any => Boolean] = arg match {
+          case filter: Filter[_, _, _] => Some(filter.p.asInstanceOf[Any => Boolean])
+          case _                       => None
+        }
+      }
     }
 
-    //transforms a traverser of B of a traversal A => B to 0 or more traversers of C to yield a traversal A => C
+    /**
+     * transforms a traverser of B of a traversal A => B to 0 or more traversers of C to yield a traversal A => C
+     */
     sealed trait FlatMap[-A, B, C, GS <: GraphSchema] extends Step[A, B, C, GS]
     object FlatMap {
 
-      sealed trait Move[-A, B <: Key[_, _], C <: Key[_, _], GS <: GraphSchema] extends FlatMap[A, B, C, GS]
+      sealed trait Move[-A, B <: Key[_, _], C <: Key[_, _], GS <: GraphSchema] extends FlatMap[A, B, C, GS] {
+        override val traversalType: Location[IK, IV, K, V, OK, OV]
+      }
       object Move {
 
         sealed trait Vertex2Edge[-A, B <: VertexKey[_, _], C <: EdgeKey[_, _, _, _, _, _], GS <: GraphSchema]
-            extends Move[A, B, C, GS]
+            extends Move[A, B, C, GS] {
+          override val traversalType: EdgeTraversal[IK, IV, K, V, OK, OV]
+        }
 
         object Vertex2Edge {
 
           sealed trait In[-A, B <: VertexKey[OK0, OV0], C <: EdgeKey[_, _, _, _, OK0, OV0], GS <: GraphSchema, OK0, OV0]
-              extends Vertex2Edge[A, B, C, GS]
+              extends Vertex2Edge[A, B, C, GS] //vertex's out is edge's in
+          object In {
+            def unapply(arg: Traversal[_, _, _]): Option[EdgeType[Any, Any, Any, Any, Any, Any]] = arg match {
+              case in: In[_, _, _, _, _, _] => Some(in.traversalType.tType.untyped)
+              case _                        => None
+            }
+          }
 
           sealed trait Out[-A, B <: VertexKey[IK0, IV0], C <: EdgeKey[IK0, IV0, _, _, _, _], GS <: GraphSchema, IK0, IV0]
-              extends Vertex2Edge[A, B, C, GS]
+              extends Vertex2Edge[A, B, C, GS] //edge's in is vertex's out
+          object Out {
+            def unapply(arg: Traversal[_, _, _]): Option[EdgeType[Any, Any, Any, Any, Any, Any]] = arg match {
+              case out: In[_, _, _, _, _, _] => Some(out.traversalType.tType.untyped)
+              case _                         => None
+            }
+          }
         }
 
         sealed trait Vertex2Vertex[-A, B <: VertexKey[_, _], C <: VertexKey[_, _], GS <: GraphSchema]
-            extends Move[A, B, C, GS]
+            extends Move[A, B, C, GS] {
+          override val traversalType: VertexTraversal[IK, IV, K, V, OK, OV]
+        }
         object Vertex2Vertex {
           sealed trait In[-A, B <: VertexKey[_, _], C <: VertexKey[_, _], GS <: GraphSchema]
               extends Vertex2Vertex[A, B, C, GS]
+          object In {
+            def unapply(arg: Traversal[_, _, _]): Option[VertexType[Any, Any]] = arg match {
+              case in: In[_, _, _, _] => Some(in.traversalType.tType.untyped)
+              case _                  => None
+            }
+          }
 
           sealed trait Out[-A, B <: VertexKey[_, _], C <: VertexKey[_, _], GS <: GraphSchema]
               extends Vertex2Vertex[A, B, C, GS]
+          object Out {
+            def unapply(arg: Traversal[_, _, _]): Option[VertexType[Any, Any]] = arg match {
+              case out: Out[_, _, _, _] => Some(out.traversalType.tType.untyped)
+              case _                    => None
+            }
+          }
         }
 
         sealed trait Edge2Vertex[-A, B <: EdgeKey[_, _, _, _, _, _], C <: VertexKey[_, _], GS <: GraphSchema]
-            extends Move[A, B, C, GS]
+            extends Move[A, B, C, GS] {
+          override val traversalType: VertexTraversal[IK, IV, K, V, OK, OV]
+        }
 
         object Edge2Vertex {
 
           sealed trait In[-A, B <: EdgeKey[IK, IV, _, _, _, _], C <: VertexKey[IK, IV], GS <: GraphSchema, IK, IV]
-              extends Edge2Vertex[A, B, C, GS] //edge's in is vertex's out
-
+              extends Edge2Vertex[A, B, C, GS]
+          object In {
+            def unapply(arg: Traversal[_, _, _]): Option[VertexType[Any, Any]] = arg match {
+              case in: In[_, _, _, _, _, _] => Some(in.traversalType.tType.untyped)
+              case _                        => None
+            }
+          }
           sealed trait Out[-A, B <: EdgeKey[_, _, _, _, OK, OV], C <: VertexKey[OK, OV], GS <: GraphSchema, OK, OV]
               extends Edge2Vertex[A, B, C, GS]
+          object Out {
+            def unapply(arg: Traversal[_, _, _]): Option[VertexType[Any, Any]] = arg match {
+              case out: Out[_, _, _, _, _, _] => Some(out.traversalType.tType.untyped)
+              case _                          => None
+            }
+          }
         }
       }
-      //maps a value to a
+      //maps a value to potentially multiple values
       sealed trait ToValues[-A, B, C, GS <: GraphSchema] extends FlatMap[A, B, C, GS]
 
       //keeps this object if any value in the supplied traversal evaulates to true
