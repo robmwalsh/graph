@@ -122,8 +122,8 @@ sealed trait Traversal[-A, C, GS <: GraphSchema] extends Schema[GS] { self =>
       val gs: GS = self.gs
     }
 
-  //
-  def id(implicit ev: C <:< Key[K, V]) = map(ev(_).key)
+  def id(implicit ev: C <:< Key[K, V]) =
+    map(ev(_).key)
 
   //convert a value to a vertex key
   def key[V0](vType: VTs[C, V0]) = new Step.Map.ToValue[A, C, VertexKey[C, V0], GS] {
@@ -262,9 +262,10 @@ object Traversal {
       def apply[IK0, IV0, K0, V0, OK0, OV0, GS <: GraphSchema](
         graph0: Graph[GS],
         et0: EdgeType[IK0, IV0, K0, V0, OK0, OV0]
-      ) = new EdgeSource[IK0, IV0, K0, V0, OK0, OV0, GS] {
-        type IK = IK0; type K = K0; type OK = OK0
-        type IV = IV0; type V = V0; type OV = OV0
+      ) =
+        new EdgeSource[IK0, IV0, K0, V0, OK0, OV0, GS] {
+          type IK = IK0; type K = K0; type OK = OK0
+          type IV = IV0; type V = V0; type OV = OV0
 
         val et: EdgeType[IK0, IV0, K0, V0, OK0, OV0]                 = et0
         val graph: Graph[GS]                                         = graph0
@@ -321,9 +322,7 @@ object Traversal {
       }
     }
 
-    /**
-     * transforms a traverser of B of a traversal A => B to 0 or more traversers of C to yield a traversal A => C
-     */
+    //transforms a traverser of B of a traversal A => B to 0 or more traversers of C to yield a traversal A => C
     sealed trait FlatMap[-A, B, C, GS <: GraphSchema] extends Step[A, B, C, GS]
     object FlatMap {
 
@@ -428,6 +427,12 @@ object TraversalType {
   }
   sealed trait Location[IK, IV, K, V, OK, OV] extends TraversalType[IK, IV, K, V, OK, OV] {
     val tType: Type[IK, IV, K, V, OK, OV]
+  }
+  object Location {
+    def unapply(arg: TraversalType[_, _, _, _, _, _]): Option[Type[Any, Any, Any, Any, Any, Any]] = arg match {
+      case location: Location[_, _, _, _, _, _] => Some(location.tType.asInstanceOf[Type[Any, Any, Any, Any, Any, Any]])
+      case value: Value[_, _, _, _, _, _]       => None
+    }
   }
   sealed case class VertexTraversal[IK, IV, K, V, OK, OV](tType: VertexType[K, V])
       extends Location[IK, IV, K, V, OK, OV]
