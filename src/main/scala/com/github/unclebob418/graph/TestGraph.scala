@@ -1,9 +1,12 @@
 package com.github.unclebob418.graph
 
-import AirRoutesSchema._
 import com.github.unclebob418.graph.AirRoutesSchema.AirRoutesEdgeType.Routes
-import com.github.unclebob418.graph.AirRoutesSchema.AirRoutesVertexType.{Airports, Countries}
+import com.github.unclebob418.graph.AirRoutesSchema.AirRoutesVertexType.{ Airports, Countries }
+import com.github.unclebob418.graph.AirRoutesSchema._
+import com.github.unclebob418.graph.Key.VertexKey
 import com.github.unclebob418.graph.traversal.Traversal.Source
+import com.github.unclebob418.graph.traversal.Traversal.Step.FlatMap
+import com.github.unclebob418.graph.traversal.Traversal.Step.FlatMap.Move.Vertex2Vertex
 
 object Test extends App {
 
@@ -28,20 +31,12 @@ object Test extends App {
       flatMap (_.addE(as, contains, syd))
       flatMap (_.addE(as, contains, syd))).head
 
-  val t1 = g
-    .V(Countries)
-    .outV(Airports)
-    .has(_.value.map(_.code == "SYD"))
-    .outV(Airports)
-    .has(_.value.map(_.code == "MEL"))
-    .inE(Routes)
-    .has(_.value.map(_.distance > 200))
-    .out
-    .has(_.id.map(_ == 3))
+  val t1 =
+    g.V(Countries).outV(Airports).has(_.value.map(_.code == "SYD")).outV(Airports).inE(Routes).has(_.id.map(_ == 3))
 
-  val t2 = Source.fromIterable(List(1,2,3), AirRoutesSchema).key(Countries)
+  val x = Source.fromIterable(List(1, 2, 3), AirRoutesSchema).key(Countries)
 
-  val x = t1.toString
+  //val x = t1.toString
   //.count
 
   //SimpleInterpreter.interpret(t1, g)

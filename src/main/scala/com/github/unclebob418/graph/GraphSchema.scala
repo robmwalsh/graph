@@ -64,7 +64,8 @@ object Type {
     def key(e: E): EdgeKey[IK, IV, EK, E, OK, OV]
     //make sure an edge can't exist without a valid connection
     val ct: ConnectionType[IK, IV, OK, OV]
-    override val untyped: EdgeType[Any, Any, Any, Any, Any, Any] = self.asInstanceOf[EdgeType[Any, Any, Any, Any, Any, Any]]
+    override val untyped: EdgeType[Any, Any, Any, Any, Any, Any] =
+      self.asInstanceOf[EdgeType[Any, Any, Any, Any, Any, Any]]
   }
   object EdgeType {
     def unapply[IK, IV, K, V, OK, OV](arg: Type[IK, IV, K, V, OK, OV]): Option[EdgeType[IK, IV, K, V, OK, OV]] =
