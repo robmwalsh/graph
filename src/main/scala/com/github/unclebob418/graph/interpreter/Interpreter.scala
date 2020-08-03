@@ -33,7 +33,7 @@ object Interpreter {
 
             case mapStep: MapStep[A, P, O, GS] =>
               mapStep match {
-                case component: MapStep.ToGraphComponent[_, _, _, _] => ???
+                case component: MapStep.ToGraphComponent[_, _, _, _] => ??? //todo need graph layer
                 case toValue: MapStep.ToValue[A, P, O, GS] =>
                   stepsTransducer(next, Transducer.identity.map(toValue.f) >>> transducer)
               }
@@ -41,40 +41,13 @@ object Interpreter {
             case map: FlatMap[A, P, O, GS] => ???
           }
       }
+
+    /*traversal match {
+      case source: Source[_, GS] => ZTransducer.identity[A]
+      case step: Step[A, p, o, GS] =>stepsTransducer(Right(step), ZTransducer.identity[B])
+    }*/
     ???
   }
   ???
 
 }
-/* step match {
-        case Traversal.Empty(_, _) => transducer
-        case map: MapStep[A, P, O, GS] =>
-          map match {
-            case _: Step.MapStep.ToGraphComponent[A, P, O, GS] => ???
-            case toValue: Step.MapStep.ToValue[A, P, O, GS] =>
-              toValue.from match {
-                case source: Source[a, GS] => //if it's the source, its output is A
-                 //need to deal with map case
-                case fromStep: Step[A, p, P, GS] =>
-                  stepsTransducer(fromStep, Transducer.identity.map(toValue.f) >>> transducer)
-              }
-
-            case filter: Filter[A, O, GS] =>
-              filter.from match {
-                case source: Source[A, GS] =>
-                  (sourceStream(source), transducer) //need to deal with filter case
-                case fromStep: Step[A, p, P, GS] =>
-                  stepsTransducer(fromStep, filterInput(filter.p, transducer))
-              }
-
-          }
-        case flatMap: FlatMap[a, b, c, _] => //transducer
-          flatMap match {
-            case Move.Edge2Vertex.In(vType)    => ???
-            case Move.Edge2Vertex.Out(vType)   => ???
-            case Move.Vertex2Edge.In(eType)    => ???
-            case Move.Vertex2Edge.Out(eType)   => ???
-            case Move.Vertex2Vertex.In(vType)  => ???
-            case Move.Vertex2Vertex.Out(vType) => ???
-          }
-      }*/

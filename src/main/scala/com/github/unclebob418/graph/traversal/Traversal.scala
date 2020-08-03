@@ -203,7 +203,7 @@ object Traversal {
     }
 
   //a source of traversers
-  sealed trait Source[I, GS <: GraphSchema] extends Traversal[I, I, GS]{
+  sealed trait Source[O, GS <: GraphSchema] extends Traversal[Any, O, GS] {
     val gs: GS
   }
   object Source {
@@ -281,7 +281,6 @@ object Traversal {
       }
     }
   }
-
   sealed trait Step[-I, P, O, GS <: GraphSchema] extends Traversal[I, O, GS] {
     val from: Traversal[I, P, GS]
   }
@@ -309,13 +308,11 @@ object Traversal {
           case _                       => None
         }
       }
-
-      /**
-     * keeps this object if the supplied predicate evaluates to true
-     */
-
     }
 
+    /**
+     * keeps this object if the supplied predicate evaluates to true
+     */
     sealed trait Filter[-I, P, GS <: GraphSchema] extends Step[I, P, P, GS] {
       val p: P => Boolean
     }
