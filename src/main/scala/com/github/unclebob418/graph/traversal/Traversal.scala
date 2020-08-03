@@ -160,7 +160,7 @@ sealed trait Traversal[-I, O, GS <: GraphSchema] extends Schema[GS] { self =>
   }
 
   def filter(p0: O => Boolean) =
-    new Step.MapStep.Filter[I, O, GS] {
+    new Step.Filter[I, O, GS] {
       type IK = self.IK; type K = self.K; type OK = self.OK
       type IV = self.IV; type V = self.V; type OV = self.OV
       override val from: Traversal[I, O, GS] = self
@@ -203,7 +203,7 @@ object Traversal {
     }
 
   //a source of traversers
-  sealed trait Source[O, GS <: GraphSchema] extends Traversal[Any, O, GS] {
+  sealed trait Source[O, GS <: GraphSchema] {
     val gs: GS
   }
   object Source {
@@ -281,6 +281,9 @@ object Traversal {
       }
     }
   }
+
+  sealed case class Empty[R <: Graph[GS], E, A, GS <: GraphSchema](stream: ZStream[R, E, A], gs: GS)
+      extends Step[A, A, A, GS]
   sealed trait Step[-I, P, O, GS <: GraphSchema] extends Traversal[I, O, GS] {
     val from: Traversal[I, P, GS]
   }
@@ -310,19 +313,20 @@ object Traversal {
       }
 
       /**
-       * keeps this object if the supplied predicate evaluates to true
-       */
-      sealed trait Filter[-I, P, GS <: GraphSchema] extends MapStep[I, P, P, GS] {
-        val p: P => Boolean
-      }
-      object Filter {
-        def unapply(arg: Traversal[_, _, _]): Option[Any => Boolean] = arg match {
-          case filter: Filter[_, _, _] => Some(filter.p.asInstanceOf[Any => Boolean])
-          case _                       => None
-        }
-      }
+     * keeps this object if the supplied predicate evaluates to true
+     */
+
     }
 
+    sealed trait Filter[-I, P, GS <: GraphSchema] extends Step[I, P, P, GS] {
+      val p: P => Boolean
+    }
+    object Filter {
+      def unapply(arg: Traversal[_, _, _]): Option[Any => Boolean] = arg match {
+        case filter: Filter[_, _, _] => Some(filter.p.asInstanceOf[Any => Boolean])
+        case _                       => None
+      }
+    }
     //transforms a traverser of B of a traversal A => B to 0 or more traversers of C to yield a traversal A => C
     sealed trait FlatMap[-I, P, O, GS <: GraphSchema] extends Step[I, P, O, GS]
     object FlatMap {
