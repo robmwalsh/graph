@@ -1,10 +1,10 @@
 package com.github.unclebob418.graph.interpreter
 
 import com.github.unclebob418.graph.traversal.Traversal
-import com.github.unclebob418.graph.traversal.Traversal.Step.{Filter, FlatMap, MapStep}
-import com.github.unclebob418.graph.traversal.Traversal.{Source, Step}
-import com.github.unclebob418.graph.{Graph, GraphSchema}
-import zio.stream.{Transducer, ZStream, ZTransducer}
+import com.github.unclebob418.graph.traversal.Traversal.Step.{ Filter, FlatMap, MapStep }
+import com.github.unclebob418.graph.traversal.Traversal.{ Source, Step }
+import com.github.unclebob418.graph.{ Graph, GraphSchema }
+import zio.stream.{ Transducer, ZStream, ZTransducer }
 
 /**
  * Source -> Stream<p/>
@@ -15,39 +15,36 @@ object Interpreter {
   def toTransducer[R <: Graph[GS], E, A, B, GS <: GraphSchema](
     graph: Graph[GS],
     traversal: Traversal[A, B, GS]
-  ): (ZStream[R, E, A], ZTransducer[R, E, A, B]) = {
-
-    def sourceStream[O](source: Source[O, GS]): ZStream[R, E, O] = ???
+  ): (ZTransducer[R, E, A, B]) = {
 
     def stepsTransducer[P, O](
-      step: Traversal.Step[A, P, O, GS],
+      step: Either[Traversal.Source[A, GS], Traversal.Step[A, P, O, GS]],
       transducer: ZTransducer[R, E, O, B]
     ): ZTransducer[R, E, P, B] =
-      step.from match {
-        case previous: Step[A, p, P, GS] =>
+      step match {
+        case Left(source) => transducer.asInstanceOf[ZTransducer[R, E, P, B]] // A =:= O =:= P for source
+        case Right(step) =>
+          val next = step.from match {
+            case source: Source[_, GS]       => Left(source.asInstanceOf[Source[A, GS]])
+            case previous: Step[A, _, P, GS] => Right(previous.asInstanceOf[Step[A, Any, P, GS]])
+          }
           step match {
-            case Traversal.Empty(stream, gs) => transducer.asInstanceOf[ZTransducer[R, E, P, B]] //P =:= O for `Empty`
+            // case Traversal.Empty(stream, gs) => transducer.asInstanceOf[ZTransducer[R, E, P, B]] //P =:= O for `Empty`
+
             case mapStep: MapStep[A, P, O, GS] =>
               mapStep match {
                 case component: MapStep.ToGraphComponent[_, _, _, _] => ???
-                case toValue: MapStep.ToValue[_, _, _, _] => ???
-                 // stepsTransducer(previous, Transducer.identity.map(toValue.f) >>> transducer)
+                case toValue: MapStep.ToValue[A, P, O, GS] =>
+                  stepsTransducer(next, Transducer.identity.map(toValue.f) >>> transducer)
               }
-            case filter: Filter[_, _, _]   => ???
+            case filter: Filter[A, P, GS]  => stepsTransducer(next, transducer.filterInput(filter.p))
             case map: FlatMap[A, P, O, GS] => ???
           }
       }
-
-    //case filter: Traversal.Filter[_, _, _] => ???
-    /*traversal match {
-      case source: Source[A, GS] => (sourceStream(source), ZTransducer.identity[A])
-      case step: Step[_, _, _, _] => stepsTransducer(traversal, ZTransducer.identity[B])
-    }*/
     ???
   }
+  ???
 
-  final def filterInput[R, E, I, O](p: I => Boolean, that: ZTransducer[R, E, I, O]): ZTransducer[R, E, I, O] =
-    ZTransducer(that.push.map(push => is => push(is.map(_.filter(p)))))
 }
 /* step match {
         case Traversal.Empty(_, _) => transducer

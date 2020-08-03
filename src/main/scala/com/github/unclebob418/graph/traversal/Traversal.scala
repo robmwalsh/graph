@@ -203,7 +203,7 @@ object Traversal {
     }
 
   //a source of traversers
-  sealed trait Source[O, GS <: GraphSchema] {
+  sealed trait Source[I, GS <: GraphSchema] extends Traversal[I, I, GS]{
     val gs: GS
   }
   object Source {
@@ -282,8 +282,6 @@ object Traversal {
     }
   }
 
-  sealed case class Empty[R <: Graph[GS], E, A, GS <: GraphSchema](stream: ZStream[R, E, A], gs: GS)
-      extends Step[A, A, A, GS]
   sealed trait Step[-I, P, O, GS <: GraphSchema] extends Traversal[I, O, GS] {
     val from: Traversal[I, P, GS]
   }

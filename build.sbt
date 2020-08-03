@@ -5,7 +5,7 @@ version := "0.1"
 scalaVersion := "2.13.2"
 
 libraryDependencies ++= Seq(
-  "dev.zio" %% "zio-streams" % "1.0.0-RC21-2",
+  "dev.zio" %% "zio-streams" % "1.0.0",
   "com.github.ghostdogpr" %% "caliban" % "0.7.6"
 )
 
