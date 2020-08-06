@@ -32,7 +32,12 @@ object Test extends App {
       flatMap (_.addE(as, contains, syd))).head
 
   val t1 =
-    g.V(Countries).outV(Airports).has(_.value.map(_.code == "SYD")).outV(Airports).inE(Routes).has(_.id.map(_ == 3))
+    g.V(Countries)
+      .outV(Airports)
+      .has(_.value.map(_.code == "SYD"))
+      .outV(Airports)
+      .inE(Routes)
+      .has(_.id.map(_ == 3))
 
   val x = Source.fromIterable(List(1, 2, 3), AirRoutesSchema).key(Countries)
 
