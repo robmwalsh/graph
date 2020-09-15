@@ -8,7 +8,8 @@ import zio.stm.graph.Type.EdgeType
 import zio.stm.graph.traversal.Traversal.Source
 import zio.stm.{ STM, TRef, USTM, ZSTM }
 
-sealed trait Graph[GS <: GraphSchema] extends Schema[GS] { self =>
+sealed trait Graph[GS <: GraphSchema] extends Schema[GS] {
+  self =>
   //todo merge es & vs? means we can grab anything out of the graph
   // and would support unsafe traversals (which could be made safe by specifying a type)
   val state: TRef[GraphState[GS]]
@@ -58,7 +59,7 @@ sealed trait Graph[GS <: GraphSchema] extends Schema[GS] { self =>
 
       (oldstate.cs.contains(inVK), oldstate.cs.contains(outVK)) match {
         case (true, true) =>
-          val edgeKey = eType.key(edge)
+          val edgeKey = eType(eType.key(edge))
           state.unsafeSet(
             journal,
             oldstate.copy(
@@ -90,8 +91,8 @@ sealed trait Graph[GS <: GraphSchema] extends Schema[GS] { self =>
     })
 
   def containsE[IK, IV, K, V, OK, OV](
-                                       ek: EdgeKey[IK, IV, K, V, OK, OV]
-                                     )(implicit vType: ETs[IK, IV, K, V, OK, OV]): USTM[Boolean] =
+    ek: EdgeKey[IK, IV, K, V, OK, OV]
+  )(implicit vType: ETs[IK, IV, K, V, OK, OV]): USTM[Boolean] =
     new ZSTM((journal, _, _, _) => TExit.Succeed(state.unsafeGet(journal).cs.contains(ek)))
 
   def containsV[K, V](vk: VertexKey[K, V])(implicit vType: VTs[K, V]): USTM[Boolean] =
@@ -132,8 +133,8 @@ sealed trait Graph[GS <: GraphSchema] extends Schema[GS] { self =>
     )
 
   private[graph] def getEs[IK, IV, EK, E, OK, OV](
-                                                   eType: EdgeType[IK, IV, EK, E, OK, OV]
-                                                 ): USTM[Set[EK]] =
+    eType: EdgeType[IK, IV, EK, E, OK, OV]
+  ): USTM[Set[EK]] =
     new ZSTM(
       (journal, _, _, _) =>
         state
@@ -147,13 +148,13 @@ sealed trait Graph[GS <: GraphSchema] extends Schema[GS] { self =>
 object Graph {
   //todo use `TMap`s
   sealed case class GraphState[GS <: GraphSchema](
-                                                   cs: Map[Any, Any],      //           [VK, V]         - component map, stores all edges & vertices
-                                                   ts: Map[Any, Set[Any]], //           [Type, Set[K]]  - type map, stores all vertex and edge keys indexed by type
-                                                   //                                   K = EK where K <: EdgeKey
-                                                   in: Map[Any, Set[(Any, Any)]],  //   [K, Set[(EK, VK)]]  - stores incoming edge & vertex key for each key
-                                                   out: Map[Any, Set[(Any, Any)]], //   [K, Set[(EK, VK)]]  - stores outgoing edge & vertex key for each key)
-                                                   gs: GS
-                                                 ) extends Schema[GS]
+    cs: Map[Any, Any],      //           [VK, V]         - component map, stores all edges & vertices
+    ts: Map[Any, Set[Any]], //           [Type, Set[K]]  - type map, stores all vertex and edge keys indexed by type
+    //                                   K = EK where K <: EdgeKey
+    in: Map[Any, Set[(Any, Any)]],  //   [K, Set[(EK, VK)]]  - stores incoming edge & vertex key for each key
+    out: Map[Any, Set[(Any, Any)]], //   [K, Set[(EK, VK)]]  - stores outgoing edge & vertex key for each key)
+    gs: GS
+  ) extends Schema[GS]
 
   def make[R, E, GS <: GraphSchema](schema: GS): ZSTM[Any, Nothing, Graph[GS]] =
     TRef

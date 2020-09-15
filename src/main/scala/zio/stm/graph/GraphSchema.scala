@@ -1,7 +1,7 @@
 package zio.stm.graph
 
-import zio.stm.graph.Key.{EdgeKey, VertexKey}
-import zio.stm.graph.Type.{EdgeType, VertexType}
+import zio.stm.graph.Key.{ EdgeKey, VertexKey }
+import zio.stm.graph.Type.{ EdgeType, VertexType }
 
 import scala.annotation.implicitNotFound
 
