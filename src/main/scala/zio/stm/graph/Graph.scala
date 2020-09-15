@@ -2,11 +2,11 @@ package zio.stm.graph
 
 import zio.stm.ZSTM.internal.TExit
 import zio.stm.graph.Graph.GraphState
-import zio.stm.graph.GraphError.{ VertexExists, VertexMissing }
-import zio.stm.graph.Key.{ EdgeKey, VertexKey }
+import zio.stm.graph.GraphError.{VertexExists, VertexMissing}
+import zio.stm.graph.Key.{EdgeKey, VertexKey}
 import zio.stm.graph.Type.EdgeType
 import zio.stm.graph.traversal.Traversal.Source
-import zio.stm.{ STM, TRef, USTM, ZSTM }
+import zio.stm.{STM, TRef, USTM, ZSTM}
 
 sealed trait Graph[GS <: GraphSchema] extends Schema[GS] {
   self =>

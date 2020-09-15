@@ -11,7 +11,7 @@ libraryDependencies ++= Seq(
   "com.github.ghostdogpr" %% "caliban" % "0.7.6",
   "dev.zio" %% "zio-test"          % zioVersion % "test",
   "dev.zio" %% "zio-test-sbt"      % zioVersion % "test",
-  //"dev.zio" %% "zio-test-intellij"      % zioVersion % "test"
+  "dev.zio" %% "zio-test-intellij"      % zioVersion % "test"
 )
 
 testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
