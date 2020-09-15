@@ -1,21 +1,15 @@
-package com.github.unclebob418.graph
+package zio.stm.graph
 
-import com.github.unclebob418.graph.AirRoutesSchema.AirRoutesEdgeType.Routes
-import com.github.unclebob418.graph.AirRoutesSchema.AirRoutesVertexType.{ Airports, Countries }
-import com.github.unclebob418.graph.AirRoutesSchema._
-import com.github.unclebob418.graph.Key.VertexKey
-import com.github.unclebob418.graph.traversal.Traversal.Source
-import com.github.unclebob418.graph.traversal.Traversal.Step.FlatMap
-import com.github.unclebob418.graph.traversal.Traversal.Step.FlatMap.Move.Vertex2Vertex
+import zio.stm.graph.traversal.Traversal.Source
 
 object Test extends App {
 
-  val syd      = Airport(1, "SYD", "YSSY", "Sydney Kingsford Smith")
-  val mel      = Airport(2, "MEL", "YMML", "Melbourne International Airport")
-  val aus      = Country(1, "AUS", "Australia")
-  val as       = Continent(1, "OC", "Oceana")
-  val route1   = Route(1, 500)
-  val route2   = Route(2, 500)
+  val syd = Airport(1, "SYD", "YSSY", "Sydney Kingsford Smith")
+  val mel = Airport(2, "MEL", "YMML", "Melbourne International Airport")
+  val aus = Country(1, "AUS", "Australia")
+  val as = Continent(1, "OC", "Oceana")
+  val route1 = Route(1, 500)
+  val route2 = Route(2, 500)
   val contains = Contains(1)
 
   val g =

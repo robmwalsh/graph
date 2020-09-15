@@ -1,4 +1,4 @@
-package com.github.unclebob418.graph.traversal
+package zio.stm.graph.traversal
 
 //https://contramap.dev/2020/02/29/hlist.html
 sealed trait HList {

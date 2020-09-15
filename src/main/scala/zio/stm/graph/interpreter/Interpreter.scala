@@ -1,10 +1,13 @@
-package com.github.unclebob418.graph.interpreter
+package zio.stm.graph.interpreter
 
-import com.github.unclebob418.graph.traversal.Traversal
-import com.github.unclebob418.graph.traversal.Traversal.Step.{ Filter, FlatMap, MapStep }
-import com.github.unclebob418.graph.traversal.Traversal.{ Source, Step }
-import com.github.unclebob418.graph.{ Graph, GraphSchema }
-import zio.stream.{ Transducer, ZStream, ZTransducer }
+import zio.stm.graph.traversal.Traversal.Step.{Filter, FlatMap, MapStep}
+import zio.stm.graph.traversal.Traversal.{Source, Step}
+import zio.stm.graph.{Graph, GraphSchema}
+import zio.stm.graph.GraphSchema
+import zio.stm.graph.traversal.Traversal
+import zio.stm.graph.traversal.Traversal.Step.{Filter, FlatMap, MapStep}
+import zio.stm.graph.traversal.Traversal.{Source, Step}
+import zio.stream.{Transducer, ZStream, ZTransducer}
 
 /**
  * Source -> Stream<p/>

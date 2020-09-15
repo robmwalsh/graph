@@ -1,7 +1,7 @@
-package com.github.unclebob418.graph
+package zio.stm.graph
 
-import com.github.unclebob418.graph.Type.{ EdgeType, VertexType }
-import com.github.unclebob418.graph.Key.{ EdgeKey, VertexKey }
+import zio.stm.graph.Key.{EdgeKey, VertexKey}
+import zio.stm.graph.Type.{EdgeType, VertexType}
 
 import scala.annotation.implicitNotFound
 
@@ -50,7 +50,11 @@ sealed trait Type[+IK, +IV, +K, +V, +OK, +OV] { self =>
 object Type {
 
   trait VertexType[K, V] extends Type[Nothing, Nothing, K, V, Nothing, Nothing] { self =>
-    def key(v: V): VertexKey[K, V]
+
+    def apply(k: K): VertexKey[K, V] = VertexKey(k, self)
+
+    val key: V => K
+
     override val untyped: VertexType[Any, Any] = self.asInstanceOf[VertexType[Any, Any]]
   }
   object VertexType {
