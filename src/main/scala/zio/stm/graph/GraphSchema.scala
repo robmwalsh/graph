@@ -1,7 +1,7 @@
 package zio.stm.graph
 
-import zio.stm.graph.Key.{EdgeKey, VertexKey}
-import zio.stm.graph.Type.{EdgeType, VertexType}
+import zio.stm.graph.Key.{ EdgeKey, VertexKey }
+import zio.stm.graph.Type.{ EdgeType, VertexType }
 
 import scala.annotation.implicitNotFound
 
@@ -47,6 +47,7 @@ object Key {
 sealed trait Type[+IK, +IV, +K, +V, +OK, +OV] { self =>
   val untyped: Type[Any, Any, Any, Any, Any, Any] = self.asInstanceOf[Type[Any, Any, Any, Any, Any, Any]]
 }
+
 object Type {
 
   trait VertexType[K, V] extends Type[Nothing, Nothing, K, V, Nothing, Nothing] { self =>
@@ -65,7 +66,10 @@ object Type {
   }
 
   trait EdgeType[IK, IV, EK, E, OK, OV] extends Type[IK, IV, EK, E, OK, OV] { self =>
-    def key(e: E): EdgeKey[IK, IV, EK, E, OK, OV]
+
+    def apply(ek: EK): EdgeKey[IK, IV, EK, E, OK, OV] = EdgeKey(ek, self)
+
+    val key: E => EK
     //make sure an edge can't exist without a valid connection
     val ct: ConnectionType[IK, IV, OK, OV]
     override val untyped: EdgeType[Any, Any, Any, Any, Any, Any] =

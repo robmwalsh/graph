@@ -3,7 +3,6 @@ package zio.stm.graph
 import Key.VertexKey
 import zio.stm.graph.Key.VertexKey
 
-
 sealed trait Path {
   def :*:[HK, HV](head: VertexKey[HK, HV]): Path
 }
@@ -19,4 +18,3 @@ object Path {
     override def :*:[NK, NV](head: VertexKey[NK, NV]): VCons[NK, NV, VCons[HK, HV, B]] = VCons(head, self)
   }
 }
-

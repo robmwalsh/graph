@@ -4,7 +4,7 @@ import zio.stm.graph.traversal.Traversal.Source
 
 object Test extends App {
 
-  val syd = Airport(1, "SYD", "YSSY", "Sydney Kingsford Smith")
+  /*val syd = Airport(1, "SYD", "YSSY", "Sydney Kingsford Smith")
   val mel = Airport(2, "MEL", "YMML", "Melbourne International Airport")
   val aus = Country(1, "AUS", "Australia")
   val as = Continent(1, "OC", "Oceana")
@@ -33,7 +33,7 @@ object Test extends App {
       .inE(Routes)
       .has(_.id.map(_ == 3))
 
-  val x = Source.fromIterable(List(1, 2, 3), AirRoutesSchema).key(Countries)
+  val x = Source.fromIterable(List(1, 2, 3), AirRoutesSchema).key(Countries)*/
 
   //val x = t1.toString
   //.count

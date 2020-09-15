@@ -99,8 +99,8 @@ object GraphSpec extends DefaultRunnableSpec {
             containsRoute1 <- g.containsE(Routes(1)).commit
             containsRoute2 <- g.containsE(Routes(2)).commit
           } yield {
-            assert(containsRoute1)(isTrue) &&
-              assert(containsRoute2)(isFalse)
+            assert(containsRoute1)(isTrue ?? "contains route 1") &&
+              assert(containsRoute2)(isFalse ?? "contains route 2")
           }
         },
         testM("addE will fail if any associated vertex is missing from the graph") {

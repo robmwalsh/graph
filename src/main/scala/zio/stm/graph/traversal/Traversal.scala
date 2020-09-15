@@ -1,15 +1,15 @@
 package zio.stm.graph.traversal
 
-import zio.stm.graph.Key.{EdgeKey, VertexKey}
-import zio.stm.graph.Type.{EdgeType, VertexType}
+import zio.stm.graph.Key.{ EdgeKey, VertexKey }
+import zio.stm.graph.Type.{ EdgeType, VertexType }
 import Traversal.Step
-import zio.stm.graph.traversal.Traversal.Step.{FlatMap, MapStep}
-import zio.stm.graph.traversal.Traversal.Step.FlatMap.Move.{Edge2Vertex, Vertex2Edge, Vertex2Vertex}
+import zio.stm.graph.traversal.Traversal.Step.{ FlatMap, MapStep }
+import zio.stm.graph.traversal.Traversal.Step.FlatMap.Move.{ Edge2Vertex, Vertex2Edge, Vertex2Vertex }
 import TraversalType._
-import zio.stm.graph.{Graph, GraphSchema, Key, Schema, Type}
-import zio.stm.graph.Key.{EdgeKey, VertexKey}
-import zio.stm.graph.{GraphSchema, Key, Schema, Type}
-import zio.stm.graph.Type.{EdgeType, VertexType}
+import zio.stm.graph.{ Graph, GraphSchema, Key, Schema, Type }
+import zio.stm.graph.Key.{ EdgeKey, VertexKey }
+import zio.stm.graph.{ GraphSchema, Key, Schema, Type }
+import zio.stm.graph.Type.{ EdgeType, VertexType }
 import zio.stream.ZStream
 
 import scala.annotation.implicitNotFound
