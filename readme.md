@@ -1,15 +1,19 @@
-# WaterWorks
-Type Safe graph traversals for ZIO Streams.
+# ZIO Graph
+Type Safe graph library traversals for the ZIO ecosystem.
 
 This is a work in progress.
 
 # Goals
- * Type safe traversals
- * Schema based
  * Useful Errors
- * Bounded memory
  * Purely functional
  * Tight integration with ZIO & ZIO Streams
+## Graph
+ * Schema based
+ * Support for transactions
+ * In-memory (for now)
+## Traversals
+ * Type safe
+ * Bounded memory
 
 # Why?
 scala-graph limits node/edge types

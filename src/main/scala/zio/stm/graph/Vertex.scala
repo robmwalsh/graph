@@ -1,7 +1,9 @@
-package com.github.unclebob418.graph
+package zio.stm.graph
 
-import com.github.unclebob418.graph.Key.VertexKey
-import com.github.unclebob418.graph.Type.VertexType
+import Key.VertexKey
+import Type.VertexType
+import zio.stm.graph.Key.VertexKey
+import zio.stm.graph.Type.VertexType
 
 case class Vertex[K, V](
                          key: VertexKey[K, V],
