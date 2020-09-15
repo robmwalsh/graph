@@ -18,7 +18,7 @@ import scala.annotation.implicitNotFound
 sealed trait Traverser[V] {
   type K
   type Path[_]
-  val path: HList.Aux[V] //how we got here, some sort of HList... maybe start with a string?
+  val path: String //how we got here, some sort of HList... maybe start with a string?
   val location: Key[K, V]
 
   def value: V
