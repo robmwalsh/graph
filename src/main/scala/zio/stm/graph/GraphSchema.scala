@@ -70,6 +70,7 @@ object Type {
     def apply(ek: EK): EdgeKey[IK, IV, EK, E, OK, OV] = EdgeKey(ek, self)
 
     val key: E => EK
+
     //make sure an edge can't exist without a valid connection
     val ct: ConnectionType[IK, IV, OK, OV]
     override val untyped: EdgeType[Any, Any, Any, Any, Any, Any] =

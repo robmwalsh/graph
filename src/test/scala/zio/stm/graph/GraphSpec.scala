@@ -1,22 +1,25 @@
 package zio.stm.graph
 
-import zio.Cause
+import mercator.Ops
+import zio.{ Cause, IO, ZIO }
 import zio.stm.STM
 import zio.stm.graph.AirRoutesSchema.AirRoutesEdgeType.Routes
-import zio.stm.graph.AirRoutesSchema.AirRoutesVertexType.{ Airports, Continents }
+import zio.stm.graph.AirRoutesSchema.AirRoutesVertexType.{ Airports, Continents, Countries }
 import zio.stm.graph.AirRoutesSchema._
 import zio.stm.graph.GraphError.{ VertexExists, VertexMissing }
 import zio.test.Assertion._
 import zio.test._
 
 object GraphSpec extends DefaultRunnableSpec {
-  val syd      = Airport(1, "SYD", "YSSY", "Sydney Kingsford Smith")
-  val mel      = Airport(2, "MEL", "YMML", "Melbourne International Airport")
-  val aus      = Country(1, "AUS", "Australia")
-  val oc       = Continent(1, "OC", "Oceana")
-  val route1   = Route(1, 500)
-  val route2   = Route(2, 500)
-  val contains = Contains(1)
+  val syd            = Airport(1, "SYD", "YSSY", "Sydney Kingsford Smith")
+  val mel            = Airport(2, "MEL", "YMML", "Melbourne International Airport")
+  val aus            = Country(1, "AUS", "Australia")
+  val oc             = Continent(1, "OC", "Oceana")
+  val route1         = Route(1, 500)
+  val route2         = Route(2, 500)
+  val ocContainsAus  = Contains(1)
+  val ausContainsSyd = Contains(2)
+  val ausContainsMel = Contains(3)
 
   def spec = suite("GraphSpec")(
     suite("vertices")(
@@ -41,7 +44,7 @@ object GraphSpec extends DefaultRunnableSpec {
                   } yield g
                 }
             fail <- g.addV(syd).commit.run
-          } yield assert(fail)(
+          } yield assert(fail.untraced)(
             fails(equalTo(VertexExists(s"Vertex ${Airports(1)} is already present in the graph")))
           )
         }
@@ -113,7 +116,7 @@ object GraphSpec extends DefaultRunnableSpec {
                 }
             missingIn   <- g.addE(mel, route1, syd).commit.run
             missingOut  <- g.addE(syd, route1, mel).commit.run
-            missingBoth <- g.addE(aus, contains, mel).commit.run
+            missingBoth <- g.addE(aus, ausContainsMel, mel).commit.run
           } yield {
             assert(missingIn.untraced)(fails(equalTo(VertexMissing("in vertex is missing")))) &&
             assert(missingOut.untraced)(fails(equalTo(VertexMissing("out vertex is missing")))) &&
@@ -154,9 +157,39 @@ object GraphSpec extends DefaultRunnableSpec {
             assert(containsRoute2)(isFalse ?? "contains route 2")
           }
         }
-      )/*,
-      test("inEs, outEs and Es should all be equivalent") {
-      } */
+      ),
+      testM("inEs and outEs should be equivalent") { //todo check all edges are in Cs
+
+        for {
+          graph <- STM.atomically {
+                    for {
+                      g <- Graph.make(AirRoutesSchema)
+                      _ <- g.addV(syd)
+                      _ <- g.addV(mel)
+                      _ <- g.addV(aus)
+                      _ <- g.addV(oc)
+                      _ <- g.addE(syd, route1, mel)
+                      _ <- g.addE(mel, route2, syd)
+                      _ <- g.addE(oc, ocContainsAus, aus)
+                      _ <- g.addE(aus, ausContainsSyd, syd)
+                      _ <- g.addE(aus, ausContainsMel, mel)
+                    } yield g
+                  }
+          in <- graph.state.get.commit.map(_.in.toList.flatMap {
+                 case (in, outK) =>
+                   outK.map { case (e, out) => (in.toString, e.toString, out.toString) }
+               }
+            .sorted
+          )
+          out <- graph.state.get.commit.map(_.out.toList.flatMap {
+                  case (out, inK) =>
+                    inK.map { case (e, in) => (in.toString, e.toString, out.toString) }
+                }
+            .sorted
+          )
+        } yield assert(in)(equalTo(out))
+      }
     )
   )
 }
+//.flatMap((in, outE) => outE.flatMap((e, out) => (in, e, out)))

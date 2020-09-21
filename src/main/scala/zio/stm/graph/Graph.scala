@@ -2,11 +2,13 @@ package zio.stm.graph
 
 import zio.stm.ZSTM.internal.TExit
 import zio.stm.graph.Graph.GraphState
-import zio.stm.graph.GraphError.{VertexExists, VertexMissing}
-import zio.stm.graph.Key.{EdgeKey, VertexKey}
-import zio.stm.graph.Type.EdgeType
+import zio.stm.graph.GraphError.{ VertexExists, VertexMissing }
+import zio.stm.graph.Key.{ EdgeKey, VertexKey }
+import zio.stm.graph.Type.{ EdgeType, VertexType }
 import zio.stm.graph.traversal.Traversal.Source
-import zio.stm.{STM, TRef, USTM, ZSTM}
+import zio.stm.{ STM, TRef, USTM, ZSTM }
+
+import scala.annotation.implicitNotFound
 
 sealed trait Graph[GS <: GraphSchema] extends Schema[GS] {
   self =>
@@ -44,13 +46,17 @@ sealed trait Graph[GS <: GraphSchema] extends Schema[GS] {
     })
 
   def addE[K0, E0, IK, IV, OK, OV](inV: IV, e: E0, outV: OV)(
-    implicit eType: ETs[IK, IV, K0, E0, OK, OV],
+    implicit @implicitNotFound(
+      "EdgeType[${K0}, ${E0}] is not allowed to connect VertexType[${IK}, ${IV}] to VertexType[${OK}, ${OV}]; check your schema."
+    ) eType: ETs[IK, IV, K0, E0, OK, OV],
     iVType: VTs[IK, IV],
     oVType: VTs[OK, OV]
   ): STM[GraphError, Unit] = addE(iVType(iVType.key(inV)), e, oVType(oVType.key(outV)))
 
   def addE[K0, E0, IK, IV, OK, OV](inVK: VertexKey[IK, IV], edge: E0, outVK: VertexKey[OK, OV])(
-    implicit eType: ETs[IK, IV, K0, E0, OK, OV],
+    implicit @implicitNotFound(
+      "EdgeType[${K0}, ${E0}] is not allowed to connect VertexType[${IK}, ${IV}] to VertexType[${OK}, ${OV}]; check your schema."
+    ) eType: ETs[IK, IV, K0, E0, OK, OV],
     iVType: VTs[IK, IV],
     oVType: VTs[OK, OV]
   ): STM[GraphError, Unit] =
@@ -71,13 +77,11 @@ sealed trait Graph[GS <: GraphSchema] extends Schema[GS] {
               in = (oldstate.in.get(outVK) match {
                 case Some(set) => oldstate.in + (outVK -> set.incl((edgeKey, inVK)))
                 case None      => oldstate.in + (outVK -> Set((edgeKey, inVK)))
-              }).asInstanceOf[Map[Any, Set[(Any, Any)]]]
-                + (edgeKey -> Set((edgeKey, inVK))),
+              }).asInstanceOf[Map[Any, Set[(Any, Any)]]],
               out = (oldstate.out.get(inVK) match {
                 case Some(set) => oldstate.out + (inVK -> set.incl((edgeKey, outVK)))
                 case None      => oldstate.out + (inVK -> Set((edgeKey, outVK)))
               }).asInstanceOf[Map[Any, Set[(Any, Any)]]]
-                + (edgeKey -> Set((edgeKey, outVK)))
             )
           )
           TExit.unit
@@ -146,7 +150,7 @@ sealed trait Graph[GS <: GraphSchema] extends Schema[GS] {
 }
 
 object Graph {
-  //todo use `TMap`s
+  //todo use `TMap`s? better for contention, higher cost of extracting the state for longer computations
   sealed case class GraphState[GS <: GraphSchema](
     cs: Map[Any, Any],      //           [VK, V]         - component map, stores all edges & vertices
     ts: Map[Any, Set[Any]], //           [Type, Set[K]]  - type map, stores all vertex and edge keys indexed by type

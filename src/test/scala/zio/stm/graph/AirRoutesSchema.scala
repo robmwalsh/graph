@@ -1,5 +1,6 @@
 package zio.stm.graph
 
+import zio.stm.graph.Key.{EdgeKey, VertexKey}
 import zio.stm.graph.Type.{EdgeType, VertexType}
 
 object AirRoutesSchema extends GraphSchema {
@@ -42,9 +43,9 @@ object AirRoutesSchema extends GraphSchema {
       override val from: VertexType[Int, Airport] = Airports
       override val to: VertexType[Int, Airport] = Airports
     }
-    implicit case object ContinentAirport extends AirRoutesConnectionType[Int, Continent, Int, Airport] {
+    implicit case object ContinentCountry extends AirRoutesConnectionType[Int, Continent, Int, Country] {
       override val from: VertexType[Int, Continent] = Continents
-      override val to: VertexType[Int, Airport] = Airports
+      override val to: VertexType[Int, Country] = Countries
     }
     implicit case object CountryAirport extends AirRoutesConnectionType[Int, Country, Int, Airport] {
       override val from: VertexType[Int, Country] = Countries
@@ -61,11 +62,11 @@ object AirRoutesSchema extends GraphSchema {
       override val ct: AirRoutesConnectionType[Int, Airport, Int, Airport] = AirportConnection
     }
 
-    implicit case object ContinentContainsAirport
-      extends AirRoutesEdgeType[Int, Continent, Int, Contains, Int, Airport] {
+    implicit case object ContinentContainsCountry
+      extends AirRoutesEdgeType[Int, Continent, Int, Contains, Int, Country] {
       self =>
       override val key: Contains => Int = _.id
-      override val ct: AirRoutesConnectionType[Int, Continent, Int, Airport] = ContinentAirport
+      override val ct: AirRoutesConnectionType[Int, Continent, Int, Country] = ContinentCountry
     }
 
     implicit case object CountryContainsAirport extends AirRoutesEdgeType[Int, Country, Int, Contains, Int, Airport] {
