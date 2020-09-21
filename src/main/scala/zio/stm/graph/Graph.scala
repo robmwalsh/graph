@@ -14,7 +14,7 @@ sealed trait Graph[GS <: GraphSchema] extends Schema[GS] {
   self =>
   //todo merge es & vs? means we can grab anything out of the graph
   // and would support unsafe traversals (which could be made safe by specifying a type)
-  val state: TRef[GraphState[GS]]
+  private [graph] val state: TRef[GraphState[GS]]
 
   def V[K, V](vType: VTs[K, V]) =
     Source.VertexSource(vType, self)
@@ -147,6 +147,13 @@ sealed trait Graph[GS <: GraphSchema] extends Schema[GS] {
           .get(eType)
           .fold(TExit.Succeed(Set.empty[EK]))(vs => TExit.Succeed(vs.asInstanceOf[Set[EK]]))
     )
+
+  private[graph] def getState: USTM[GraphState[GS]] =
+    new ZSTM((journal, _, _, _) => {
+      val s = state.unsafeGet(journal)
+      TExit.Succeed(s)
+    })
+
 }
 
 object Graph {
