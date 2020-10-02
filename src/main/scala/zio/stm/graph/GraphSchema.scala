@@ -36,12 +36,12 @@ trait GraphSchema { self =>
 //a Key contains both the type and ID of a component - equivalent to a location on the graph
 sealed trait Key[K, V] {
   val key: K
-  val cType: Type[_, _, K, V, _, _]
+  val componentType: Type[_, _, K, V, _, _]
 }
 object Key {
   //todo need a better name for c(omponent)Type, confused with c(onnection)Type
-  sealed case class VertexKey[VK, V](key: VK, cType: VertexType[VK, V])                             extends Key[VK, V]
-  sealed case class EdgeKey[IK, IV, EK, E, OK, OV](key: EK, cType: EdgeType[IK, IV, EK, E, OK, OV]) extends Key[EK, E]
+  sealed case class VertexKey[VK, V](key: VK, componentType: VertexType[VK, V])                             extends Key[VK, V]
+  sealed case class EdgeKey[IK, IV, EK, E, OK, OV](key: EK, componentType: EdgeType[IK, IV, EK, E, OK, OV]) extends Key[EK, E]
 }
 
 sealed trait Type[+IK, +IV, +K, +V, +OK, +OV] { self =>

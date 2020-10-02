@@ -175,13 +175,13 @@ object GraphSpec extends DefaultRunnableSpec {
                       _ <- g.addE(aus, ausContainsMel, mel)
                     } yield g
                   }
-          in <- graph.state.get.commit.map(_.in.toList.flatMap {
+          out <- graph.state.get.commit.map(_.out.toList.flatMap {
                  case (in, outK) =>
                    outK.map { case (e, out) => (in.toString, e.toString, out.toString) }
                }
             .sorted
           )
-          out <- graph.state.get.commit.map(_.out.toList.flatMap {
+          in <- graph.state.get.commit.map(_.in.toList.flatMap {
                   case (out, inK) =>
                     inK.map { case (e, in) => (in.toString, e.toString, out.toString) }
                 }

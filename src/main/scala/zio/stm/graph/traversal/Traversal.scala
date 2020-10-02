@@ -32,7 +32,7 @@ sealed trait Traversal[-I, O, GS <: GraphSchema] extends Schema[GS] { self =>
   val traversalType: TraversalType[IK, IV, K, V, OK, OV]
 
   def outV[OK0, OV0](oVType: VTs[OK0, OV0])(
-    implicit @implicitNotFound("Couldn't find a connection from ${O} to VTs[${IK0},${IV0}], check the schema ${GS}")
+    implicit @implicitNotFound("Couldn't find a connection from ${O} to VTs[${OK0},${OV0}], check the schema ${GS}")
     ct0: CTs[K, V, OK0, OV0],
     ev: O <:< VertexKey[K, V]
   ) =
@@ -61,7 +61,7 @@ sealed trait Traversal[-I, O, GS <: GraphSchema] extends Schema[GS] { self =>
       val gs: GS = self.gs
     }
   def outE[K0, V0, OK0, OV0](eType: ETs[K, V, K0, V0, OK0, OV0])(
-    implicit ev: O <:< VertexKey[K, V]
+    implicit @implicitNotFound("outE can only be used on a vertex, not ${O}") ev: O <:< VertexKey[K, V]
   ) =
     new Vertex2Edge.Out[I, VertexKey[K, V], EdgeKey[K, V, K0, V0, OK0, OV0], GS, K, V] {
       type IK = self.K; type K = K0; type OK = OK0
